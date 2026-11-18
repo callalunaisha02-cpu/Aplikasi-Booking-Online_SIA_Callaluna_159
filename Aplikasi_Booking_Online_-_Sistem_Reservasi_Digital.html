@@ -1,0 +1,3302 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="carbon">
+  <title>Sistem Reservasi Digital &amp; Manajemen Sewa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces (Carbon) */
+      --background: #ffffff;
+      --surface-container-low: #f4f4f4;
+      --surface-container: #f4f4f4;
+      --surface-container-high: #e0e0e0;
+
+      /* Ink */
+      --on-surface: #161616;
+      --on-surface-variant: #525252;
+
+      /* Rules */
+      --outline: #8d8d8d;
+      --outline-variant: #e0e0e0;
+
+      /* Accents */
+      --primary: #0f62fe;
+      --primary-hover: #0043ce;
+      --on-primary: #ffffff;
+      --primary-container: #d0e2ff;
+      --on-primary-container: #161616;
+      --secondary: #6f6f6f;
+      --tertiary: #198038;
+      --tertiary-container: #defbe6;
+      --error: #da1e28;
+      --error-container: #fff1f1;
+      --on-error: #ffffff;
+
+      /* Data series */
+      --data-1: #0f62fe;
+      --data-2: #6929c4;
+      --data-3: #005d5d;
+      --data-4: #9f1853;
+      --data-context: #8d8d8d;
+
+      /* Fonts */
+      --font-headline: 'IBM Plex Sans', sans-serif;
+      --font-body: 'IBM Plex Sans', sans-serif;
+      --font-label: 'IBM Plex Mono', monospace;
+
+      /* Shape */
+      --rounded: 0.125rem;
+      --rounded-lg: 0.25rem;
+      --rounded-full: 0.75rem;
+
+      /* Style effects */
+      --shadow-1: 0 2px 6px rgb(0 0 0 / 0.1);
+      --shadow-2: 0 4px 12px rgb(0 0 0 / 0.12);
+      --rule: 1px solid var(--outline-variant);
+      --field-rule: 1px solid var(--outline);
+      --indicator: 2px solid var(--primary);
+
+      /* Semantic shared tokens */
+      --positive: #198038;
+      --warning: #8e6a00;
+      --warning-container: #fcf4d6;
+      --focus: #0f62fe;
+
+      /* Type scale (Dashboard / Focused Tool) */
+      --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+    button, input, select, textarea { font-family: inherit; }
+
+    .page-grid {
+      display: grid;
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1320px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Focus rings */
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Carbon Header */
+    .app-header {
+      border-bottom: var(--rule);
+      padding-bottom: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .header-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: var(--space-md);
+    }
+
+    .header-title-block {
+      max-width: 68ch;
+    }
+
+    .label-mono {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--on-surface-variant);
+      margin: 0;
+    }
+
+    .headline {
+      font-family: var(--font-headline);
+      font-weight: 300;
+      font-size: var(--display-size);
+      letter-spacing: 0;
+      line-height: 1.2;
+      margin: var(--space-xs) 0 0 0;
+      color: var(--on-surface);
+    }
+    .headline strong { font-weight: 600; }
+
+    .section-title {
+      font-family: var(--font-headline);
+      font-weight: 300;
+      font-size: var(--headline-size);
+      line-height: 1.25;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .section-title strong { font-weight: 600; }
+
+    .subhead {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      line-height: 1.3;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    .header-desc {
+      margin: var(--space-sm) 0 0 0;
+      color: var(--on-surface-variant);
+      max-width: 65ch;
+      font-size: var(--body-size);
+    }
+
+    .header-status-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      height: 24px;
+      padding: 0 var(--space-sm);
+      border-radius: var(--rounded-full);
+      font-size: var(--label-size);
+      font-weight: 400;
+      background-color: var(--primary-container);
+      color: var(--on-primary-container);
+      white-space: nowrap;
+    }
+    .tag-success {
+      background-color: var(--tertiary-container);
+      color: var(--tertiary);
+    }
+    .tag-warning {
+      background-color: var(--warning-container);
+      color: var(--warning);
+    }
+    .tag-error {
+      background-color: var(--error-container);
+      color: var(--error);
+    }
+    .tag-neutral {
+      background-color: var(--surface-container-high);
+      color: var(--on-surface);
+    }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      border-bottom: var(--rule);
+    }
+
+    .tab-btn {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      padding: var(--space-sm) var(--space-lg);
+      min-height: 44px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: var(--body-size);
+      font-weight: 400;
+      color: var(--on-surface-variant);
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .tab-btn:hover {
+      background-color: var(--surface-container);
+      color: var(--on-surface);
+    }
+    .tab-btn.is-active {
+      border-bottom: var(--indicator);
+      font-weight: 600;
+      color: var(--on-surface);
+    }
+
+    .tab-count {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      background-color: var(--surface-container-high);
+      color: var(--on-surface);
+      padding: 0 var(--space-xs);
+      min-width: 20px;
+      text-align: center;
+    }
+
+    /* Views */
+    .view-panel { display: none; }
+    .view-panel.is-active {
+      display: grid;
+      gap: var(--space-lg);
+      animation: fadeIn var(--dur-short) var(--ease-out);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Carbon Layers */
+    .layer {
+      background-color: var(--surface-container);
+      border-radius: 0;
+      padding: var(--space-md);
+    }
+    .layer .layer {
+      background-color: var(--surface-container-high);
+    }
+    .layer-white {
+      background-color: var(--background);
+      border: var(--rule);
+      padding: var(--space-md);
+    }
+
+    .section-head {
+      border-bottom: var(--rule);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: var(--space-sm);
+    }
+
+    /* Main Workspace Grid (Asymmetric 7 + 5) */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    .workspace-left,
+    .workspace-right {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
+    /* Buttons (Carbon: square corners, 40/48px tall, left-aligned label, extra right padding) */
+    .btn {
+      appearance: none;
+      border-radius: 0;
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-xl) var(--space-sm) var(--space-md);
+      font-size: var(--body-size);
+      font-weight: 400;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border: 1px solid transparent;
+      text-align: left;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    .btn-compact {
+      min-height: 40px;
+      padding: var(--space-xs) var(--space-md);
+    }
+    .btn-primary {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--primary-hover);
+    }
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background-color: var(--primary-container);
+      color: var(--on-primary-container);
+    }
+    .btn-danger {
+      background-color: var(--error);
+      color: var(--on-error);
+    }
+    .btn-danger:hover:not(:disabled) {
+      background-color: #a2191f;
+    }
+    .btn-ghost {
+      background-color: transparent;
+      color: var(--primary);
+      padding: var(--space-xs) var(--space-sm);
+      min-height: 40px;
+    }
+    .btn-ghost:hover:not(:disabled) {
+      background-color: var(--surface-container-high);
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    /* Filter Bar & Inputs */
+    .filter-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+      gap: var(--space-sm);
+      align-items: end;
+      margin-bottom: var(--space-md);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .field-label {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      font-weight: 500;
+    }
+
+    .field-control {
+      height: 40px;
+      background-color: var(--surface-container-low);
+      border: 0;
+      border-bottom: var(--field-rule);
+      border-radius: 0;
+      padding: 0 var(--space-md);
+      color: var(--on-surface);
+      font-size: var(--body-size);
+      width: 100%;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .field-control.on-layer {
+      background-color: var(--background);
+    }
+    select.field-control {
+      padding-right: var(--space-xl);
+    }
+    textarea.field-control {
+      height: auto;
+      min-height: 76px;
+      padding: var(--space-sm) var(--space-md);
+      resize: vertical;
+    }
+    .field-control.is-invalid {
+      border-bottom: 2px solid var(--error);
+    }
+    .field-error {
+      font-size: var(--label-size);
+      color: var(--error);
+      min-height: 1.1em;
+    }
+    .field-helper {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    /* Category Filter Strip */
+    .cat-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-md);
+    }
+
+    .cat-btn {
+      appearance: none;
+      background-color: var(--surface-container);
+      color: var(--on-surface-variant);
+      border: 0;
+      border-bottom: 2px solid transparent;
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      cursor: pointer;
+      font-size: var(--label-size);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .cat-btn:hover {
+      background-color: var(--surface-container-high);
+      color: var(--on-surface);
+    }
+    .cat-btn.is-active {
+      background-color: var(--surface-container-high);
+      color: var(--on-surface);
+      border-bottom: var(--indicator);
+      font-weight: 600;
+    }
+
+    /* Unit Catalog Grid */
+    .unit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    .unit-card {
+      background-color: var(--surface-container);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .unit-card:hover {
+      background-color: var(--surface-container-high);
+    }
+    .unit-card.is-selected {
+      border-left: 3px solid var(--primary);
+      background-color: var(--primary-container);
+      color: var(--on-primary-container);
+    }
+    .unit-card.is-selected .label-mono,
+    .unit-card.is-selected .unit-spec {
+      color: var(--on-primary-container);
+    }
+
+    .unit-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-sm);
+    }
+
+    .unit-name {
+      font-weight: 600;
+      font-size: var(--body-size);
+      margin: var(--space-xs) 0 0 0;
+      color: var(--on-surface);
+    }
+
+    .unit-spec {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      margin: 0;
+    }
+
+    .unit-price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-top: var(--rule);
+      padding-top: var(--space-sm);
+      margin-top: var(--space-xs);
+    }
+
+    .unit-price {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      color: var(--on-surface);
+    }
+
+    /* Schedule & Real-Time Slot Engine */
+    .schedule-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+      gap: var(--space-md);
+      align-items: end;
+      margin-bottom: var(--space-md);
+    }
+
+    .date-strip {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: var(--space-xs);
+      margin-bottom: var(--space-md);
+    }
+
+    .date-pill {
+      appearance: none;
+      background-color: var(--background);
+      border: var(--rule);
+      border-bottom: 2px solid transparent;
+      padding: var(--space-xs) var(--space-xs);
+      min-height: 54px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      text-align: left;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .date-pill:hover {
+      background-color: var(--surface-container-high);
+    }
+    .date-pill.is-active {
+      background-color: var(--primary-container);
+      border-bottom: var(--indicator);
+    }
+    .date-pill-day {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+    }
+    .date-pill-num {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--body-size);
+      color: var(--on-surface);
+    }
+    .date-pill-load {
+      font-family: var(--font-label);
+      font-size: 0.6875rem;
+      color: var(--on-surface-variant);
+    }
+
+    .slot-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      margin-bottom: var(--space-sm);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      display: inline-block;
+      border: var(--rule);
+    }
+    .swatch-free { background-color: var(--background); }
+    .swatch-selected { background-color: var(--primary); border-color: var(--primary); }
+    .swatch-booked { background-color: var(--surface-container-high); }
+    .swatch-conflict { background-color: var(--error); border-color: var(--error); }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: var(--space-xs);
+    }
+
+    .slot-btn {
+      appearance: none;
+      min-height: 52px;
+      padding: var(--space-xs) var(--space-sm);
+      background-color: var(--background);
+      border: var(--rule);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 2px;
+      text-align: left;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .slot-btn:hover:not(:disabled) {
+      background-color: var(--surface-container-high);
+    }
+    .slot-btn.is-selected {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .slot-btn.is-selected .slot-state {
+      color: var(--on-primary);
+    }
+    .slot-btn.is-booked {
+      background-color: var(--surface-container-high);
+      color: var(--on-surface-variant);
+      cursor: not-allowed;
+    }
+    .slot-btn.is-conflict {
+      background-color: var(--error-container);
+      border-color: var(--error);
+      color: var(--error);
+    }
+    .slot-time {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+    }
+    .slot-state {
+      font-size: 0.6875rem;
+      color: var(--on-surface-variant);
+    }
+
+    /* Notifications / Callouts */
+    .notice-strip {
+      background-color: var(--surface-container);
+      border-left: 3px solid var(--primary);
+      padding: var(--space-sm) var(--space-md);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      font-size: var(--body-size);
+    }
+    .notice-strip.is-success {
+      background-color: var(--tertiary-container);
+      border-left-color: var(--tertiary);
+      color: var(--on-surface);
+    }
+    .notice-strip.is-error {
+      background-color: var(--error-container);
+      border-left-color: var(--error);
+      color: var(--on-surface);
+    }
+    .notice-strip.is-warning {
+      background-color: var(--warning-container);
+      border-left-color: var(--warning);
+      color: var(--on-surface);
+    }
+
+    /* Cost Summary */
+    .summary-tile {
+      background-color: var(--surface-container);
+      border-bottom: var(--indicator);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .key-value {
+      font-family: var(--font-label);
+      font-weight: 300;
+      font-size: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+      line-height: 1.15;
+      color: var(--on-surface);
+    }
+    .summary-list {
+      display: grid;
+      gap: var(--space-xs);
+      margin: 0;
+      padding: var(--space-sm) 0 0 0;
+      border-top: var(--rule);
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      font-size: var(--label-size);
+    }
+    .summary-row dt { color: var(--on-surface-variant); }
+    .summary-row dd {
+      margin: 0;
+      font-family: var(--font-label);
+      font-weight: 500;
+      text-align: right;
+    }
+
+    /* Payment Module */
+    .pay-methods {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-xs);
+    }
+    .pay-method-btn {
+      appearance: none;
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-sm);
+      background-color: var(--background);
+      border: var(--rule);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: var(--label-size);
+      font-weight: 500;
+      color: var(--on-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+    }
+    .pay-method-btn.is-active {
+      background-color: var(--primary-container);
+      border-bottom: var(--indicator);
+      font-weight: 600;
+    }
+
+    .qris-box {
+      background-color: var(--background);
+      border: var(--rule);
+      padding: var(--space-md);
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--space-md);
+      align-items: center;
+    }
+    .qr-svg-wrap {
+      background-color: var(--background);
+      border: var(--rule);
+      padding: var(--space-xs);
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .va-display {
+      background-color: var(--background);
+      border: var(--rule);
+      padding: var(--space-sm) var(--space-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      font-family: var(--font-label);
+      font-weight: 600;
+    }
+
+    .wa-preview {
+      background-color: var(--background);
+      border: var(--rule);
+      padding: var(--space-sm) var(--space-md);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      white-space: pre-wrap;
+      color: var(--on-surface);
+    }
+
+    /* Analytics Dashboard */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .kpi-tile {
+      background-color: var(--surface-container);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-xs);
+    }
+    .kpi-tile.is-primary {
+      border-bottom: var(--indicator);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+      gap: var(--space-lg);
+    }
+    .chart-card {
+      background-color: var(--surface-container);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .chart-wrap {
+      min-height: 280px;
+      height: 280px;
+      position: relative;
+      background-color: var(--background);
+      padding: var(--space-sm);
+      border: var(--rule);
+    }
+
+    .analytics-filter-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+      gap: var(--space-md);
+      align-items: end;
+    }
+
+    /* Carbon Table */
+    .table-scroll {
+      overflow-x: auto;
+      border-top: var(--rule);
+      border-bottom: var(--rule);
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--body-size);
+      text-align: left;
+    }
+    .data-table thead th {
+      background-color: var(--surface-container-high);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--on-surface);
+      padding: var(--space-sm) var(--space-md);
+      white-space: nowrap;
+    }
+    .data-table tbody td {
+      padding: var(--space-sm) var(--space-md);
+      border-top: var(--rule);
+      vertical-align: top;
+    }
+    .data-table tbody tr:nth-child(even) {
+      background-color: var(--surface-container-low);
+    }
+    .num-col {
+      text-align: right;
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    /* ERD Grid */
+    .erd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .erd-entity {
+      background-color: var(--surface-container);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-xs);
+      align-content: start;
+    }
+    .erd-field {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      padding-top: var(--space-xs);
+      border-top: var(--rule);
+    }
+
+    /* Footer */
+    .app-footer {
+      border-top: var(--rule);
+      padding-top: var(--space-md);
+      margin-top: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 960px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-sm);
+        gap: var(--space-md);
+      }
+      .filter-row {
+        grid-template-columns: 1fr;
+      }
+      .date-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .qris-box {
+        grid-template-columns: 1fr;
+      }
+      .pay-methods {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-grid">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="header-title-block">
+          <p class="label-mono">SISTEM RESERVASI DIGITAL • OPERASIONAL RENTAL &amp; SEWA</p>
+          <h1 class="headline">Aplikasi Booking Online <strong>&amp; Kontrol Jadwal Real-Time</strong></h1>
+          <p class="header-desc">
+            Platform pemesanan terpadu untuk lapangan olahraga, armada kendaraan, ruang meeting, peralatan event, dan alat berat dengan pencegahan bentrok jadwal otomatis, simulasi pembayaran instan, serta rekap analitik omset.
+          </p>
+        </div>
+        <div class="header-status-strip">
+          <span class="tag tag-success" id="storage-status-tag">Penyimpanan Otomatis Aktif</span>
+          <span class="tag" id="header-clock-tag">Operasional 07:00–22:00 WIB</span>
+        </div>
+      </div>
+
+      <nav class="tab-bar" role="tablist" aria-label="Navigasi Modul Aplikasi">
+        <button type="button" class="tab-btn is-active" id="tab-btn-booking" role="tab" aria-selected="true" onclick="switchView('booking')">
+          <span>1. Katalog &amp; Reservasi</span>
+          <span class="tab-count" id="badge-unit-count">11</span>
+        </button>
+        <button type="button" class="tab-btn" id="tab-btn-analytics" role="tab" aria-selected="false" onclick="switchView('analytics')">
+          <span>2. Dashboard Laporan &amp; Analytics</span>
+          <span class="tab-count" id="badge-tx-count">0</span>
+        </button>
+        <button type="button" class="tab-btn" id="tab-btn-erd" role="tab" aria-selected="false" onclick="switchView('erd')">
+          <span>3. Struktur ERD &amp; Manajemen Data</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- VIEW 1: CATALOG, REAL-TIME SCHEDULE, BOOKING FORM & PAYMENT -->
+    <main id="view-booking" class="view-panel is-active">
+      <div id="global-feedback-banner" class="notice-strip" style="display: none;" role="status" aria-live="polite"></div>
+
+      <div class="workspace-grid">
+        <!-- LEFT COLUMN: CATALOG + REAL-TIME CALENDAR -->
+        <div class="workspace-left">
+          <!-- SECTION 1: KATALOG UNIT SEWA -->
+          <section aria-labelledby="heading-katalog">
+            <div class="section-head">
+              <div>
+                <p class="label-mono">LANGKAH 1 • ENTITAS KATEGORI &amp; UNIT SEWA</p>
+                <h2 class="section-title" id="heading-katalog">Katalog <strong>Unit Tersedia</strong></h2>
+              </div>
+              <span class="label-mono" id="catalog-result-count">11 unit ditampilkan</span>
+            </div>
+
+            <div class="cat-strip" id="category-filter-strip" role="group" aria-label="Filter Kategori Unit"></div>
+
+            <div class="filter-row">
+              <div class="field-group">
+                <label class="field-label" for="search-unit-input">Cari Nama, Kode Unit, atau Spesifikasi</label>
+                <input type="text" id="search-unit-input" class="field-control" placeholder="Contoh: Padel, Videotron, Excavator, Meeting…" oninput="handleCatalogFilterChange()">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="sort-unit-select">Urutkan Tarif</label>
+                <select id="sort-unit-select" class="field-control" onchange="handleCatalogFilterChange()">
+                  <option value="default">Urutan Kategori</option>
+                  <option value="price-asc">Tarif Terendah</option>
+                  <option value="price-desc">Tarif Tertinggi</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="unit-grid" id="unit-catalog-grid"></div>
+          </section>
+
+          <!-- SECTION 2: KALENDER & SLOT JADWAL REAL-TIME -->
+          <section class="layer" aria-labelledby="heading-kalender">
+            <div class="section-head">
+              <div>
+                <p class="label-mono">LANGKAH 2 • KALENDER &amp; DETEKSI BENTROK JADWAL</p>
+                <h2 class="section-title" id="heading-kalender">Slot Jadwal <strong>Real-Time</strong></h2>
+              </div>
+              <span class="tag" id="selected-unit-badge">Memuat unit…</span>
+            </div>
+
+            <div class="schedule-controls">
+              <div class="field-group">
+                <label class="field-label" for="booking-date-input">Tanggal Sewa</label>
+                <input type="date" id="booking-date-input" class="field-control on-layer" onchange="handleDateChange(this.value)">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="booking-duration-select">Durasi Sewa (Jam)</label>
+                <select id="booking-duration-select" class="field-control on-layer" onchange="handleDurationChange(this.value)"></select>
+              </div>
+              <div class="field-group">
+                <span class="field-label">Paket Cepat</span>
+                <div class="btn-row" id="duration-presets-row"></div>
+              </div>
+            </div>
+
+            <p class="label-mono" style="margin-bottom: var(--space-xs);">PILIH TANGGAL CEPAT (7 HARI KE DEPAN)</p>
+            <div class="date-strip" id="quick-date-strip" role="group" aria-label="Pilih Tanggal Cepat"></div>
+
+            <div class="slot-legend" aria-label="Keterangan Status Slot">
+              <span class="legend-item"><span class="legend-swatch swatch-free"></span> Tersedia</span>
+              <span class="legend-item"><span class="legend-swatch swatch-selected"></span> Pilihan Anda</span>
+              <span class="legend-item"><span class="legend-swatch swatch-booked"></span> Sudah Dipesan</span>
+              <span class="legend-item"><span class="legend-swatch swatch-conflict"></span> Bentrok Durasi</span>
+            </div>
+
+            <div class="slot-grid" id="time-slot-grid" role="group" aria-label="Slot Jam Mulai"></div>
+
+            <div id="slot-conflict-alert" class="notice-strip" style="margin-top: var(--space-md);" role="status" aria-live="polite"></div>
+          </section>
+        </div>
+
+        <!-- RIGHT COLUMN: RINGKASAN, FORM PELANGGAN, & MODUL PEMBAYARAN -->
+        <aside class="workspace-right" aria-label="Panel Pemesanan dan Pembayaran">
+          <!-- SUMMARY TILE -->
+          <section class="summary-tile" aria-labelledby="heading-ringkasan">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-sm);">
+              <div>
+                <p class="label-mono">ESTIMASI TOTAL TAGIHAN</p>
+                <div class="key-value" id="summary-total-price">Rp 0</div>
+              </div>
+              <span class="tag tag-neutral" id="summary-duration-tag">0 Jam</span>
+            </div>
+
+            <dl class="summary-list">
+              <div class="summary-row">
+                <dt>Unit Dipilih</dt>
+                <dd id="summary-unit-name">—</dd>
+              </div>
+              <div class="summary-row">
+                <dt>Tanggal Sewa</dt>
+                <dd id="summary-date-label">—</dd>
+              </div>
+              <div class="summary-row">
+                <dt>Rentang Waktu</dt>
+                <dd id="summary-time-range">—</dd>
+              </div>
+              <div class="summary-row">
+                <dt>Tarif Dasar</dt>
+                <dd id="summary-unit-rate">—</dd>
+              </div>
+              <div class="summary-row">
+                <dt>Biaya Layanan Sistem</dt>
+                <dd id="summary-service-fee">Rp 0</dd>
+              </div>
+            </dl>
+          </section>
+
+          <!-- BOOKING FORM CARD -->
+          <section class="layer" id="customer-form-section" aria-labelledby="heading-form-pelanggan">
+            <div class="section-head">
+              <div>
+                <p class="label-mono">LANGKAH 3 • VALIDASI PELANGGAN</p>
+                <h2 class="subhead" id="heading-form-pelanggan">Form Pemesanan &amp; Identitas</h2>
+              </div>
+            </div>
+
+            <form id="booking-form" onsubmit="handleBookingSubmit(event)" novalidate style="display: grid; gap: var(--space-sm);">
+              <div class="field-group">
+                <label class="field-label" for="cust-name">Nama Lengkap Pemesan / PIC *</label>
+                <input type="text" id="cust-name" class="field-control on-layer" placeholder="Contoh: Raka Pratama" autocomplete="name">
+                <span class="field-error" id="err-cust-name"></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="cust-id">Nomor Identitas (NIK KTP / SIM / NPWP) *</label>
+                <input type="text" id="cust-id" class="field-control on-layer" placeholder="Contoh: 3374011711950002" inputmode="numeric">
+                <span class="field-helper">Digunakan untuk verifikasi serah terima unit/fasilitas.</span>
+                <span class="field-error" id="err-cust-id"></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="cust-wa">Nomor WhatsApp Aktif *</label>
+                <input type="tel" id="cust-wa" class="field-control on-layer" placeholder="Contoh: 085141228577" inputmode="tel">
+                <span class="field-error" id="err-cust-wa"></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="cust-email">Alamat Email *</label>
+                <input type="email" id="cust-email" class="field-control on-layer" placeholder="Contoh: raka@perusahaan.co.id" autocomplete="email">
+                <span class="field-error" id="err-cust-email"></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="cust-org">Instansi / Komunitas (Opsional)</label>
+                <input type="text" id="cust-org" class="field-control on-layer" placeholder="Contoh: PT Arena Sportiva / Komunitas Padel">
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="cust-notes">Catatan Kebutuhan Tambahan (Opsional)</label>
+                <textarea id="cust-notes" class="field-control on-layer" placeholder="Contoh: Tambah 2 raket sewa, setup proyektor HDMI, atau lokasi pengiriman…"></textarea>
+              </div>
+
+              <label style="display: flex; align-items: center; gap: var(--space-sm); font-size: var(--label-size); cursor: pointer; padding: var(--space-xs) 0;">
+                <input type="checkbox" id="cust-wa-notify" checked style="width: 18px; height: 18px;">
+                <span>Buat format notifikasi konfirmasi &amp; pengingat otomatis WhatsApp</span>
+              </label>
+
+              <div id="form-submit-error" class="notice-strip is-error" style="display: none;" role="alert"></div>
+
+              <button type="submit" class="btn btn-primary" id="btn-submit-booking" style="width: 100%; margin-top: var(--space-xs);">
+                <span>Buat Reservasi &amp; Lanjut ke Pembayaran</span>
+                <i data-lucide="arrow-right" aria-hidden="true" style="width: 18px; height: 18px;"></i>
+              </button>
+            </form>
+          </section>
+
+          <!-- PAYMENT SIMULATION MODULE -->
+          <section class="layer" id="payment-module-section" style="display: none;" aria-labelledby="heading-pembayaran">
+            <div class="section-head">
+              <div>
+                <p class="label-mono">LANGKAH 4 • MODUL PEMBAYARAN SIMULASI INSTANT</p>
+                <h2 class="subhead" id="heading-pembayaran">Penyelesaian Pembayaran</h2>
+              </div>
+              <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                <span class="label-mono" id="pay-countdown-label" style="font-weight: 600; color: var(--error);">15:00</span>
+                <span class="tag tag-warning" id="pay-status-badge">Menunggu Pembayaran</span>
+              </div>
+            </div>
+
+            <div id="payment-module-body" style="display: grid; gap: var(--space-md);"></div>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <!-- VIEW 2: OWNER ANALYTICS & REPORTING DASHBOARD -->
+    <section id="view-analytics" class="view-panel" aria-labelledby="heading-analytics">
+      <div class="section-head">
+        <div>
+          <p class="label-mono">PANEL PEMILIK USAHA • REKAP OMSET &amp; HISTORI TRANSAKSI</p>
+          <h2 class="section-title" id="heading-analytics">Dashboard <strong>Laporan &amp; Analytics</strong></h2>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary btn-compact" onclick="exportAnalyticsCsv()">
+            <i data-lucide="download" aria-hidden="true" style="width: 16px; height: 16px;"></i>
+            <span>Ekspor CSV</span>
+          </button>
+          <button type="button" class="btn btn-ghost btn-compact" onclick="switchView('booking')">
+            <span>+ Tambah Reservasi Baru</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ANALYTICS FILTERS -->
+      <div class="layer">
+        <div class="analytics-filter-bar">
+          <div class="field-group">
+            <label class="field-label" for="analytics-period-mode">Mode Periode</label>
+            <select id="analytics-period-mode" class="field-control on-layer" onchange="handleAnalyticsFilterChange()">
+              <option value="monthly">Bulanan</option>
+              <option value="daily">Harian</option>
+              <option value="all">Semua Periode</option>
+            </select>
+          </div>
+          <div class="field-group" id="analytics-day-group" style="display: none;">
+            <label class="field-label" for="analytics-day-input">Pilih Tanggal</label>
+            <input type="date" id="analytics-day-input" class="field-control on-layer" onchange="handleAnalyticsFilterChange()">
+          </div>
+          <div class="field-group" id="analytics-month-group">
+            <label class="field-label" for="analytics-month-input">Pilih Bulan</label>
+            <input type="month" id="analytics-month-input" class="field-control on-layer" onchange="handleAnalyticsFilterChange()">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="analytics-category-filter">Kategori Unit</label>
+            <select id="analytics-category-filter" class="field-control on-layer" onchange="handleAnalyticsFilterChange()">
+              <option value="all">Semua Kategori</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="analytics-status-filter">Status Transaksi</label>
+            <select id="analytics-status-filter" class="field-control on-layer" onchange="handleAnalyticsFilterChange()">
+              <option value="all">Semua Status</option>
+              <option value="Terkonfirmasi">Terkonfirmasi (Lunas)</option>
+              <option value="Selesai">Selesai</option>
+              <option value="Menunggu Pembayaran">Menunggu Pembayaran</option>
+              <option value="Dibatalkan">Dibatalkan</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="analytics-search-input">Cari Booking / Pelanggan</label>
+            <input type="text" id="analytics-search-input" class="field-control on-layer" placeholder="Kode, nama, WA…" oninput="handleAnalyticsFilterChange()">
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid" id="analytics-kpi-grid">
+        <div class="kpi-tile is-primary">
+          <p class="label-mono">TOTAL OMSET LUNAS</p>
+          <div class="key-value" id="kpi-total-revenue">Rp 0</div>
+          <span class="field-helper" id="kpi-revenue-sub">Dari transaksi berstatus Lunas</span>
+        </div>
+        <div class="kpi-tile">
+          <p class="label-mono">TOTAL RESERVASI</p>
+          <div class="key-value" id="kpi-total-bookings">0</div>
+          <span class="field-helper" id="kpi-bookings-sub">0 menunggu pembayaran</span>
+        </div>
+        <div class="kpi-tile">
+          <p class="label-mono">TOTAL JAM TERSEWA</p>
+          <div class="key-value" id="kpi-total-hours">0 jam</div>
+          <span class="field-helper" id="kpi-hours-sub">Rata-rata 0 jam / order</span>
+        </div>
+        <div class="kpi-tile">
+          <p class="label-mono">RATA-RATA TRANSAKSI</p>
+          <div class="key-value" id="kpi-avg-order">Rp 0</div>
+          <span class="field-helper" id="kpi-conversion-sub">Rasio lunas 0%</span>
+        </div>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div>
+            <h3 class="subhead" id="chart-trend-title">Tren Omset Harian</h3>
+            <p class="label-mono">SATUAN RUPIAH (IDR) • TRANSAKSI LUNAS</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="revenue-trend-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div>
+            <h3 class="subhead">Distribusi Omset per Kategori</h3>
+            <p class="label-mono">PERBANDINGAN KATEGORI UNIT SEWA</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="category-breakdown-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTION HISTORY TABLE -->
+      <section aria-labelledby="heading-histori">
+        <div class="section-head">
+          <div>
+            <p class="label-mono">DETAIL TRANSAKSI &amp; KONTROL STATUS</p>
+            <h3 class="subhead" id="heading-histori">Histori Reservasi &amp; Pembayaran</h3>
+          </div>
+          <span class="label-mono" id="table-row-count">0 transaksi</span>
+        </div>
+
+        <div id="analytics-inline-notice" class="notice-strip" style="display: none; margin-bottom: var(--space-md);" role="status"></div>
+
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Kode Booking</th>
+                <th>Jadwal &amp; Durasi</th>
+                <th>Unit &amp; Kategori</th>
+                <th>Pelanggan &amp; WA</th>
+                <th>Metode Bayar</th>
+                <th class="num-col">Total Biaya</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW 3: ERD ARCHITECTURE & DATA MANAGEMENT -->
+    <section id="view-erd" class="view-panel" aria-labelledby="heading-erd">
+      <div class="section-head">
+        <div>
+          <p class="label-mono">ARSITEKTUR RELASIONAL &amp; PERSISTENSI STATE</p>
+          <h2 class="section-title" id="heading-erd">Struktur <strong>ERD &amp; Sinkronisasi Data</strong></h2>
+        </div>
+      </div>
+
+      <div class="notice-strip">
+        <i data-lucide="database" aria-hidden="true" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
+        <div>
+          Seluruh entitas aplikasi dikelola dalam struktur relasional 5 tabel utama sesuai rancangan ERD sistem booking online. Perubahan transaksi otomatis tersimpan secara persisten di browser melalui API aplikasi.
+        </div>
+      </div>
+
+      <div class="erd-grid" id="erd-schema-grid"></div>
+
+      <div class="layer" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-md);">
+        <div>
+          <h3 class="subhead">Manajemen Data Simulasi</h3>
+          <p class="field-helper" style="margin: var(--space-xs) 0 0 0;">
+            Anda dapat mengembalikan dataset ke kondisi contoh awal atau mengosongkan seluruh histori reservasi untuk pengujian bersih dari nol.
+          </p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary btn-compact" id="btn-reset-demo" onclick="handleResetDemoData(this)">
+            Pulihkan Data Simulasi Awal
+          </button>
+          <button type="button" class="btn btn-danger btn-compact" id="btn-clear-all" onclick="handleClearAllData(this)">
+            Kosongkan Semua Transaksi
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      <span>Sistem Reservasi Digital Rental &amp; Sewa • Validasi Anti Double-Booking Real-Time</span>
+      <span class="label-mono">JAM OPERASIONAL 07:00–22:00 WIB</span>
+    </footer>
+  </div>
+
+  <api-shim></api-shim>
+  <script>
+    // =========================================================================
+    // 1. MASTER DATA (ERD: KATEGORI_UNIT & UNIT_SEWA)
+    // =========================================================================
+    const CATEGORIES = [
+      { id: 'all', nama: 'Semua Kategori', ikon: 'layers' },
+      { id: 'lapangan', nama: 'Lapangan Olahraga', ikon: 'trophy' },
+      { id: 'kendaraan', nama: 'Kendaraan', ikon: 'car' },
+      { id: 'meeting', nama: 'Ruang Meeting', ikon: 'presentation' },
+      { id: 'event', nama: 'Peralatan Event', ikon: 'monitor-speaker' },
+      { id: 'alat-berat', nama: 'Alat Berat', ikon: 'truck' }
+    ];
+
+    const UNITS = [
+      {
+        id: 'UNIT-PADEL-01',
+        kategoriId: 'lapangan',
+        nama: `Lapangan Padel Court A (Indoor Glass)`,
+        spesifikasi: `Kaca tempered standar FIP • Pencahayaan LED 500 lux • Termasuk bola latihan`,
+        lokasi: `Arena Sportiva Hall A`,
+        hargaPerJam: 280000,
+        minDurasi: 1
+      },
+      {
+        id: 'UNIT-FUTSAL-01',
+        kategoriId: 'lapangan',
+        nama: `Lapangan Futsal Vinyl Pro`,
+        spesifikasi: `Rumput/vinyl interlock anti-slip • Papan skor digital • Area bench tim`,
+        lokasi: `Arena Sportiva Hall Utama`,
+        hargaPerJam: 180000,
+        minDurasi: 1
+      },
+      {
+        id: 'UNIT-BDM-02',
+        kategoriId: 'lapangan',
+        nama: `Lapangan Badminton Karpet BWF (Court 2)`,
+        spesifikasi: `Karpet sintetis standar turnamen • Bebas silau • Loker pemain`,
+        lokasi: `GOR Timur Lt. 1`,
+        hargaPerJam: 85000,
+        minDurasi: 1
+      },
+      {
+        id: 'UNIT-MTR-01',
+        kategoriId: 'kendaraan',
+        nama: `Motor Operasional NMAX 155 ABS`,
+        spesifikasi: `Termasuk 2 helm SNI & jas hujan • BBM penuh saat serah terima`,
+        lokasi: `Pool Kendaraan Barat`,
+        hargaPerJam: 35000,
+        minDurasi: 4
+      },
+      {
+        id: 'UNIT-MBL-02',
+        kategoriId: 'kendaraan',
+        nama: `Innova Zenix Hybrid + Driver`,
+        spesifikasi: `Kapasitas 7 penumpang • AC dual-zone • Termasuk jasa pengemudi dalam kota`,
+        lokasi: `Pool Kendaraan Pusat`,
+        hargaPerJam: 150000,
+        minDurasi: 4
+      },
+      {
+        id: 'UNIT-MTG-01',
+        kategoriId: 'meeting',
+        nama: `Ruang Meeting Eksekutif Nusantara`,
+        spesifikasi: `Kapasitas 16 orang • Smart TV 75" • Konferensi video 4K & Wi-Fi dedicated`,
+        lokasi: `Gedung Utama Lt. 3`,
+        hargaPerJam: 250000,
+        minDurasi: 2
+      },
+      {
+        id: 'UNIT-STD-02',
+        kategoriId: 'meeting',
+        nama: `Studio Podcast & Hybrid Webinar`,
+        spesifikasi: `Akustik kedap suara • 3 kamera 4K + mixer audio • Operator teknis standby`,
+        lokasi: `Creative Hub Lt. 2`,
+        hargaPerJam: 320000,
+        minDurasi: 2
+      },
+      {
+        id: 'UNIT-VDT-01',
+        kategoriId: 'event',
+        nama: `Videotron LED Indoor P2.6 (4×3 Meter)`,
+        spesifikasi: `High refresh rate 3840Hz • Video processor Novastar • Termasuk instalasi`,
+        lokasi: `Gudang AV Teknis`,
+        hargaPerJam: 750000,
+        minDurasi: 4
+      },
+      {
+        id: 'UNIT-SND-02',
+        kategoriId: 'event',
+        nama: `Paket Sound System & TV Wall 65"`,
+        spesifikasi: `Output 4.000 Watt • 4 mic wireless UHF • 2 unit TV Wall standing`,
+        lokasi: `Gudang AV Teknis`,
+        hargaPerJam: 400000,
+        minDurasi: 4
+      },
+      {
+        id: 'UNIT-EXC-01',
+        kategoriId: 'alat-berat',
+        nama: `Mini Excavator PC55MR + Operator`,
+        spesifikasi: `Bobot kerja 5,5 ton • Bucket 0,22 m³ • Bersertifikat SIO aktif`,
+        lokasi: `Yard Alat Berat Selatan`,
+        hargaPerJam: 650000,
+        minDurasi: 4
+      },
+      {
+        id: 'UNIT-GNS-02',
+        kategoriId: 'alat-berat',
+        nama: `Genset Silent 60 kVA + Kabel Power`,
+        spesifikasi: `Kanopi peredam suara • Panel AMF • Kabel distribusi 50 meter`,
+        lokasi: `Yard Alat Berat Selatan`,
+        hargaPerJam: 450000,
+        minDurasi: 4
+      }
+    ];
+
+    const OPERATING_START_HOUR = 7;
+    const OPERATING_END_HOUR = 22; // jam terakhir selesai adalah 22:00 (slot mulai terakhir 21:00)
+    const TODAY_ISO = '2026-11-17';
+
+    function createSeedState() {
+      const customers = [
+        {
+          id: 'CUST-001',
+          nama: `Dimas Kusuma`,
+          identitas: `3374021208920001`,
+          whatsapp: `081234567890`,
+          email: `dimas@arenasportiva.id`,
+          instansi: `PT Arena Sportiva Prima`
+        },
+        {
+          id: 'CUST-002',
+          nama: `Nadia Larasati`,
+          identitas: `3374055403950004`,
+          whatsapp: `085141228577`,
+          email: `nadia@konovagroup.co.id`,
+          instansi: `Konova Group Event`
+        },
+        {
+          id: 'CUST-003',
+          nama: `Budi Santoso`,
+          identitas: `3374090511880003`,
+          whatsapp: `081398765432`,
+          email: `budi.santoso@konstruksijaya.id`,
+          instansi: `CV Konstruksi Jaya`
+        },
+        {
+          id: 'CUST-004',
+          nama: `Sinta Maharani`,
+          identitas: `3374116207970002`,
+          whatsapp: `087711223344`,
+          email: `sinta@kreatifnusantara.id`,
+          instansi: `Komunitas Digital Semarang`
+        },
+        {
+          id: 'CUST-005',
+          nama: `Hendra Wijaya`,
+          identitas: `3374031904900007`,
+          whatsapp: `082144556677`,
+          email: `hendra@juraganmotor.id`,
+          instansi: `Juragan Motor Ops`
+        }
+      ];
+
+      const reservations = [
+        {
+          id: 'RSV-20261117-01',
+          unitId: 'UNIT-PADEL-01',
+          customerId: 'CUST-001',
+          tanggal: '2026-11-17',
+          jamMulai: 9,
+          durasi: 2,
+          catatan: `Latihan rutin pagi + sewa 4 bola`,
+          totalBiaya: 560000,
+          status: 'Terkonfirmasi',
+          waNotify: true,
+          dibuatPada: '2026-11-16T18:20:00'
+        },
+        {
+          id: 'RSV-20261117-02',
+          unitId: 'UNIT-PADEL-01',
+          customerId: 'CUST-004',
+          tanggal: '2026-11-17',
+          jamMulai: 16,
+          durasi: 2,
+          catatan: `Sparring sore`,
+          totalBiaya: 560000,
+          status: 'Terkonfirmasi',
+          waNotify: true,
+          dibuatPada: '2026-11-17T07:10:00'
+        },
+        {
+          id: 'RSV-20261117-03',
+          unitId: 'UNIT-VDT-01',
+          customerId: 'CUST-002',
+          tanggal: '2026-11-17',
+          jamMulai: 10,
+          durasi: 6,
+          catatan: `Seminar tahunan Ballroom Hotel`,
+          totalBiaya: 4500000,
+          status: 'Terkonfirmasi',
+          waNotify: true,
+          dibuatPada: '2026-11-15T14:00:00'
+        },
+        {
+          id: 'RSV-20261117-04',
+          unitId: 'UNIT-MTG-01',
+          customerId: 'CUST-004',
+          tanggal: '2026-11-17',
+          jamMulai: 13,
+          durasi: 3,
+          catatan: `Presentasi klien Q4`,
+          totalBiaya: 750000,
+          status: 'Menunggu Pembayaran',
+          waNotify: true,
+          dibuatPada: '2026-11-17T08:15:00'
+        },
+        {
+          id: 'RSV-20261115-05',
+          unitId: 'UNIT-EXC-01',
+          customerId: 'CUST-003',
+          tanggal: '2026-11-15',
+          jamMulai: 8,
+          durasi: 8,
+          catatan: `Pekerjaan galian drainase proyek`,
+          totalBiaya: 5200000,
+          status: 'Selesai',
+          waNotify: true,
+          dibuatPada: '2026-11-14T10:30:00'
+        },
+        {
+          id: 'RSV-20261112-06',
+          unitId: 'UNIT-MBL-02',
+          customerId: 'CUST-005',
+          tanggal: '2026-11-12',
+          jamMulai: 8,
+          durasi: 10,
+          catatan: `Kunjungan dinas luar kota`,
+          totalBiaya: 1500000,
+          status: 'Selesai',
+          waNotify: true,
+          dibuatPada: '2026-11-11T16:40:00'
+        },
+        {
+          id: 'RSV-20261118-07',
+          unitId: 'UNIT-FUTSAL-01',
+          customerId: 'CUST-001',
+          tanggal: '2026-11-18',
+          jamMulai: 19,
+          durasi: 2,
+          catatan: `Turnamen internal divisi`,
+          totalBiaya: 360000,
+          status: 'Terkonfirmasi',
+          waNotify: true,
+          dibuatPada: '2026-11-17T06:50:00'
+        }
+      ];
+
+      const payments = [
+        {
+          id: 'PAY-001',
+          reservationId: 'RSV-20261117-01',
+          metode: 'QRIS',
+          kanal: 'QRIS Dinamis',
+          referensi: 'QRIS-20261116-8812',
+          jumlah: 560000,
+          status: 'Lunas',
+          waktuBayar: '2026-11-16T18:22:00'
+        },
+        {
+          id: 'PAY-002',
+          reservationId: 'RSV-20261117-02',
+          metode: 'E-Wallet',
+          kanal: 'GoPay',
+          referensi: 'GP-20261117-4190',
+          jumlah: 560000,
+          status: 'Lunas',
+          waktuBayar: '2026-11-17T07:12:00'
+        },
+        {
+          id: 'PAY-003',
+          reservationId: 'RSV-20261117-03',
+          metode: 'Transfer Bank',
+          kanal: 'BCA Virtual Account',
+          referensi: 'VA-BCA-992011',
+          jumlah: 4500000,
+          status: 'Lunas',
+          waktuBayar: '2026-11-15T14:18:00'
+        },
+        {
+          id: 'PAY-004',
+          reservationId: 'RSV-20261117-04',
+          metode: 'Transfer Bank',
+          kanal: 'Mandiri Virtual Account',
+          referensi: 'VA-MDR-773109',
+          jumlah: 750000,
+          status: 'Belum Bayar',
+          waktuBayar: null
+        },
+        {
+          id: 'PAY-005',
+          reservationId: 'RSV-20261115-05',
+          metode: 'Transfer Bank',
+          kanal: 'BNI Virtual Account',
+          referensi: 'VA-BNI-552841',
+          jumlah: 5200000,
+          status: 'Lunas',
+          waktuBayar: '2026-11-14T11:00:00'
+        },
+        {
+          id: 'PAY-006',
+          reservationId: 'RSV-20261112-06',
+          metode: 'QRIS',
+          kanal: 'QRIS Dinamis',
+          referensi: 'QRIS-20261111-1044',
+          jumlah: 1500000,
+          status: 'Lunas',
+          waktuBayar: '2026-11-11T16:45:00'
+        },
+        {
+          id: 'PAY-007',
+          reservationId: 'RSV-20261118-07',
+          metode: 'E-Wallet',
+          kanal: 'OVO',
+          referensi: 'OVO-20261117-3321',
+          jumlah: 360000,
+          status: 'Lunas',
+          waktuBayar: '2026-11-17T06:54:00'
+        }
+      ];
+
+      return { customers, reservations, payments };
+    }
+
+    // =========================================================================
+    // 2. APPLICATION STATE
+    // =========================================================================
+    const seed = createSeedState();
+    const appState = {
+      activeView: 'booking',
+      selectedCategory: 'all',
+      searchQuery: '',
+      sortMode: 'default',
+      selectedUnitId: UNITS[0].id,
+      selectedDate: TODAY_ISO,
+      selectedStartHour: 11,
+      selectedDuration: 2,
+      activePaymentReservationId: null,
+      selectedPayMethod: 'QRIS',
+      selectedPayChannel: 'QRIS Dinamis',
+      analyticsFilter: {
+        periodMode: 'monthly',
+        day: TODAY_ISO,
+        month: '2026-11',
+        category: 'all',
+        status: 'all',
+        search: ''
+      },
+      customers: seed.customers,
+      reservations: seed.reservations,
+      payments: seed.payments
+    };
+
+    let revenueChartInstance = null;
+    let categoryChartInstance = null;
+    let paymentCountdownTimer = null;
+    let paymentRemainingSeconds = 900;
+
+    // =========================================================================
+    // 3. STATE PERSISTENCE (notebookAppApi Shim)
+    // =========================================================================
+    async function persistAppState() {
+      const payload = {
+        selectedUnitId: appState.selectedUnitId,
+        selectedDate: appState.selectedDate,
+        selectedStartHour: appState.selectedStartHour,
+        selectedDuration: appState.selectedDuration,
+        activePaymentReservationId: appState.activePaymentReservationId,
+        customers: appState.customers,
+        reservations: appState.reservations,
+        payments: appState.payments
+      };
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === 'function') {
+          await window.notebookAppApi.setAppState(payload);
+        }
+      } catch (err) {
+        const tag = document.getElementById('storage-status-tag');
+        if (tag) {
+          tag.textContent = 'Mode Memori Sesi';
+          tag.className = 'tag tag-warning';
+        }
+      }
+    }
+
+    async function loadPersistedState() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === 'object') {
+            if (Array.isArray(saved.customers)) appState.customers = saved.customers;
+            if (Array.isArray(saved.reservations)) appState.reservations = saved.reservations;
+            if (Array.isArray(saved.payments)) appState.payments = saved.payments;
+            if (saved.selectedUnitId && findUnit(saved.selectedUnitId)) appState.selectedUnitId = saved.selectedUnitId;
+            if (saved.selectedDate) appState.selectedDate = saved.selectedDate;
+            if (typeof saved.selectedStartHour === 'number') appState.selectedStartHour = saved.selectedStartHour;
+            if (typeof saved.selectedDuration === 'number') appState.selectedDuration = saved.selectedDuration;
+            if (saved.activePaymentReservationId) appState.activePaymentReservationId = saved.activePaymentReservationId;
+          }
+        }
+      } catch (err) {
+        // Fallback smoothly to initial seeded state
+      }
+    }
+
+    // =========================================================================
+    // 4. UTILITIES & DOMAIN LOGIC
+    // =========================================================================
+    function formatRupiah(amount) {
+      const num = Number(amount) || 0;
+      return 'Rp ' + num.toLocaleString('id-ID');
+    }
+
+    function formatHour(hour) {
+      const h = String(hour).padStart(2, '0');
+      return h + ':00';
+    }
+
+    function formatDateIndo(isoDate) {
+      if (!isoDate) return '—';
+      const parts = isoDate.split('-');
+      if (parts.length !== 3) return isoDate;
+      const dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      return dateObj.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+
+    function addDaysIso(baseIso, offsetDays) {
+      const parts = baseIso.split('-');
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      d.setDate(d.getDate() + offsetDays);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function findUnit(unitId) {
+      return UNITS.find(function (u) { return u.id === unitId; }) || UNITS[0];
+    }
+
+    function findCategory(catId) {
+      return CATEGORIES.find(function (c) { return c.id === catId; }) || CATEGORIES[0];
+    }
+
+    function findCustomer(custId) {
+      return appState.customers.find(function (c) { return c.id === custId; }) || null;
+    }
+
+    function findPaymentByReservation(resId) {
+      return appState.payments.find(function (p) { return p.reservationId === resId; }) || null;
+    }
+
+    function getActiveReservationsForUnitDate(unitId, isoDate) {
+      return appState.reservations.filter(function (r) {
+        return r.unitId === unitId && r.tanggal === isoDate && r.status !== 'Dibatalkan';
+      });
+    }
+
+    // Core Anti-Double-Booking Engine: interval overlap [startA, endA) vs [startB, endB)
+    function checkScheduleConflict(unitId, isoDate, startHour, duration) {
+      const endHour = startHour + duration;
+      if (startHour < OPERATING_START_HOUR || endHour > OPERATING_END_HOUR) {
+        return {
+          hasConflict: true,
+          reason: `Durasi melewati jam operasional (${formatHour(OPERATING_START_HOUR)}–${formatHour(OPERATING_END_HOUR)} WIB). Kurangi durasi atau pilih jam mulai lebih awal.`,
+          conflictingBooking: null
+        };
+      }
+
+      const unit = findUnit(unitId);
+      if (duration < unit.minDurasi) {
+        return {
+          hasConflict: true,
+          reason: `Minimal durasi sewa untuk unit ini adalah ${unit.minDurasi} jam.`,
+          conflictingBooking: null
+        };
+      }
+
+      const activeList = getActiveReservationsForUnitDate(unitId, isoDate);
+      for (let i = 0; i < activeList.length; i++) {
+        const existing = activeList[i];
+        const exEnd = existing.jamMulai + existing.durasi;
+        if (startHour < exEnd && endHour > existing.jamMulai) {
+          return {
+            hasConflict: true,
+            reason: `Bentrok jadwal dengan reservasi ${existing.id} (${formatHour(existing.jamMulai)}–${formatHour(exEnd)} WIB).`,
+            conflictingBooking: existing
+          };
+        }
+      }
+
+      return { hasConflict: false, reason: '', conflictingBooking: null };
+    }
+
+    function findFirstAvailableStartHour(unitId, isoDate, duration) {
+      for (let h = OPERATING_START_HOUR; h <= OPERATING_END_HOUR - duration; h++) {
+        const check = checkScheduleConflict(unitId, isoDate, h, duration);
+        if (!check.hasConflict) return h;
+      }
+      return OPERATING_START_HOUR;
+    }
+
+    function getCssToken(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    // =========================================================================
+    // 5. NAVIGATION & FEEDBACK
+    // =========================================================================
+    function switchView(viewName) {
+      appState.activeView = viewName;
+      const views = ['booking', 'analytics', 'erd'];
+      views.forEach(function (v) {
+        const panel = document.getElementById('view-' + v);
+        const btn = document.getElementById('tab-btn-' + v);
+        if (panel) panel.classList.toggle('is-active', v === viewName);
+        if (btn) {
+          btn.classList.toggle('is-active', v === viewName);
+          btn.setAttribute('aria-selected', v === viewName ? 'true' : 'false');
+        }
+      });
+
+      if (viewName === 'analytics') {
+        renderAnalyticsDashboard();
+      } else if (viewName === 'erd') {
+        renderErdSchema();
+      } else {
+        renderCatalog();
+        renderScheduleModule();
+        renderSummaryPanel();
+        renderPaymentModule();
+      }
+      refreshIcons();
+    }
+
+    function showGlobalBanner(message, variant) {
+      const banner = document.getElementById('global-feedback-banner');
+      if (!banner) return;
+      banner.className = 'notice-strip' + (variant ? ' is-' + variant : '');
+      banner.innerHTML = '<span>' + escapeHtml(message) + '</span>';
+      banner.style.display = 'flex';
+    }
+
+    function refreshIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
+    // =========================================================================
+    // 6. CATALOG MODULE
+    // =========================================================================
+    function renderCategoryFilters() {
+      const strip = document.getElementById('category-filter-strip');
+      if (!strip) return;
+      strip.innerHTML = CATEGORIES.map(function (cat) {
+        const isActive = appState.selectedCategory === cat.id;
+        const count = cat.id === 'all'
+          ? UNITS.length
+          : UNITS.filter(function (u) { return u.kategoriId === cat.id; }).length;
+        return `<button type="button" class="cat-btn${isActive ? ' is-active' : ''}" onclick="selectCategory('${cat.id}')">
+          <i data-lucide="${cat.ikon}" aria-hidden="true" style="width: 15px; height: 15px;"></i>
+          <span>${escapeHtml(cat.nama)} (${count})</span>
+        </button>`;
+      }).join('');
+
+      // Populate Analytics category dropdown too
+      const analyticsCat = document.getElementById('analytics-category-filter');
+      if (analyticsCat && analyticsCat.options.length <= 1) {
+        CATEGORIES.filter(function (c) { return c.id !== 'all'; }).forEach(function (cat) {
+          const opt = document.createElement('option');
+          opt.value = cat.id;
+          opt.textContent = cat.nama;
+          analyticsCat.appendChild(opt);
+        });
+      }
+    }
+
+    function selectCategory(catId) {
+      appState.selectedCategory = catId;
+      renderCategoryFilters();
+      renderCatalog();
+      refreshIcons();
+    }
+
+    function handleCatalogFilterChange() {
+      const searchInput = document.getElementById('search-unit-input');
+      const sortSelect = document.getElementById('sort-unit-select');
+      appState.searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      appState.sortMode = sortSelect ? sortSelect.value : 'default';
+      renderCatalog();
+      refreshIcons();
+    }
+
+    function getFilteredUnits() {
+      let list = UNITS.filter(function (u) {
+        if (appState.selectedCategory !== 'all' && u.kategoriId !== appState.selectedCategory) {
+          return false;
+        }
+        if (appState.searchQuery) {
+          const hay = (u.nama + ' ' + u.id + ' ' + u.spesifikasi + ' ' + u.lokasi).toLowerCase();
+          return hay.indexOf(appState.searchQuery) !== -1;
+        }
+        return true;
+      });
+
+      if (appState.sortMode === 'price-asc') {
+        list = list.slice().sort(function (a, b) { return a.hargaPerJam - b.hargaPerJam; });
+      } else if (appState.sortMode === 'price-desc') {
+        list = list.slice().sort(function (a, b) { return b.hargaPerJam - a.hargaPerJam; });
+      }
+      return list;
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('unit-catalog-grid');
+      const countEl = document.getElementById('catalog-result-count');
+      if (!grid) return;
+
+      const list = getFilteredUnits();
+      if (countEl) {
+        countEl.textContent = list.length + ' unit ditampilkan';
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="layer" style="grid-column: 1 / -1;">
+          <p class="subhead">Tidak ada unit yang cocok</p>
+          <p class="field-helper" style="margin: var(--space-xs) 0 var(--space-sm) 0;">Kata kunci "${escapeHtml(appState.searchQuery)}" tidak ditemukan pada kategori terpilih.</p>
+          <button type="button" class="btn btn-secondary btn-compact" onclick="resetCatalogFilters()">Tampilkan Semua Unit</button>
+        </div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(function (unit) {
+        const cat = findCategory(unit.kategoriId);
+        const isSelected = unit.id === appState.selectedUnitId;
+        const bookedTodayCount = getActiveReservationsForUnitDate(unit.id, appState.selectedDate).length;
+        return `<article class="unit-card${isSelected ? ' is-selected' : ''}" tabindex="0" role="button" aria-pressed="${isSelected ? 'true' : 'false'}" onclick="selectUnit('${unit.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectUnit('${unit.id}');}">
+          <div>
+            <div class="unit-card-top">
+              <span class="label-mono">${escapeHtml(unit.id)}</span>
+              <span class="tag${isSelected ? '' : ' tag-neutral'}">${escapeHtml(cat.nama)}</span>
+            </div>
+            <h3 class="unit-name">${escapeHtml(unit.nama)}</h3>
+            <p class="unit-spec" style="margin-top: var(--space-xs);">${escapeHtml(unit.spesifikasi)}</p>
+          </div>
+          <div>
+            <div class="unit-spec" style="margin-bottom: var(--space-xs);">
+              Lokasi: ${escapeHtml(unit.lokasi)} • Min ${unit.minDurasi} jam • ${bookedTodayCount} jadwal aktif tgl ini
+            </div>
+            <div class="unit-price-row">
+              <span class="unit-price">${formatRupiah(unit.hargaPerJam)}<span style="font-size: 0.75rem; font-weight: 400;"> / jam</span></span>
+              <span class="label-mono" style="color: ${isSelected ? 'var(--on-primary-container)' : 'var(--primary)'};">
+                ${isSelected ? 'TERPILIH' : 'PILIH UNIT'}
+              </span>
+            </div>
+          </div>
+        </article>`;
+      }).join('');
+    }
+
+    function resetCatalogFilters() {
+      appState.selectedCategory = 'all';
+      appState.searchQuery = '';
+      appState.sortMode = 'default';
+      const searchInput = document.getElementById('search-unit-input');
+      const sortSelect = document.getElementById('sort-unit-select');
+      if (searchInput) searchInput.value = '';
+      if (sortSelect) sortSelect.value = 'default';
+      renderCategoryFilters();
+      renderCatalog();
+      refreshIcons();
+    }
+
+    function selectUnit(unitId) {
+      appState.selectedUnitId = unitId;
+      const unit = findUnit(unitId);
+      if (appState.selectedDuration < unit.minDurasi) {
+        appState.selectedDuration = unit.minDurasi;
+      }
+      const conflict = checkScheduleConflict(unitId, appState.selectedDate, appState.selectedStartHour, appState.selectedDuration);
+      if (conflict.hasConflict) {
+        appState.selectedStartHour = findFirstAvailableStartHour(unitId, appState.selectedDate, appState.selectedDuration);
+      }
+      renderCatalog();
+      renderScheduleModule();
+      renderSummaryPanel();
+      persistAppState();
+      refreshIcons();
+    }
+
+    // =========================================================================
+    // 7. REAL-TIME CALENDAR & ANTI-DOUBLE-BOOKING MODULE
+    // =========================================================================
+    function renderScheduleModule() {
+      const unit = findUnit(appState.selectedUnitId);
+      const badge = document.getElementById('selected-unit-badge');
+      if (badge) badge.textContent = unit.id + ' • ' + unit.nama;
+
+      const dateInput = document.getElementById('booking-date-input');
+      if (dateInput) {
+        dateInput.value = appState.selectedDate;
+        dateInput.min = TODAY_ISO;
+      }
+
+      // Duration dropdown respecting unit.minDurasi up to 12 hours
+      const durSelect = document.getElementById('booking-duration-select');
+      if (durSelect) {
+        let opts = '';
+        for (let d = unit.minDurasi; d <= 12; d++) {
+          opts += `<option value="${d}"${d === appState.selectedDuration ? ' selected' : ''}>${d} Jam</option>`;
+        }
+        durSelect.innerHTML = opts;
+      }
+
+      // Quick duration preset buttons
+      const presetsRow = document.getElementById('duration-presets-row');
+      if (presetsRow) {
+        const presetValues = [unit.minDurasi, Math.max(unit.minDurasi, 2), 4, 8].filter(function (v, idx, arr) {
+          return arr.indexOf(v) === idx;
+        });
+        presetsRow.innerHTML = presetValues.map(function (val) {
+          const active = val === appState.selectedDuration;
+          return `<button type="button" class="btn btn-compact ${active ? 'btn-primary' : 'btn-secondary'}" onclick="handleDurationChange(${val})">${val} Jam</button>`;
+        }).join('');
+      }
+
+      // Quick 7-day strip
+      const dateStrip = document.getElementById('quick-date-strip');
+      if (dateStrip) {
+        let html = '';
+        for (let offset = 0; offset < 7; offset++) {
+          const iso = addDaysIso(TODAY_ISO, offset);
+          const parts = iso.split('-');
+          const dObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+          const dayShort = dObj.toLocaleDateString('id-ID', { weekday: 'short' });
+          const dayNum = parts[2] + '/' + parts[1];
+          const bookedCount = getActiveReservationsForUnitDate(unit.id, iso).length;
+          const isAct = iso === appState.selectedDate;
+          html += `<button type="button" class="date-pill${isAct ? ' is-active' : ''}" onclick="handleDateChange('${iso}')">
+            <span class="date-pill-day">${escapeHtml(dayShort)}</span>
+            <span class="date-pill-num">${escapeHtml(dayNum)}</span>
+            <span class="date-pill-load">${bookedCount} terisi</span>
+          </button>`;
+        }
+        dateStrip.innerHTML = html;
+      }
+
+      // Hourly slot grid (07:00 .. 21:00 start)
+      const slotGrid = document.getElementById('time-slot-grid');
+      const conflictCheck = checkScheduleConflict(unit.id, appState.selectedDate, appState.selectedStartHour, appState.selectedDuration);
+      const activeBookings = getActiveReservationsForUnitDate(unit.id, appState.selectedDate);
+
+      if (slotGrid) {
+        let slotsHtml = '';
+        for (let h = OPERATING_START_HOUR; h < OPERATING_END_HOUR; h++) {
+          // Find if hour h is occupied by an existing booking
+          let occupier = null;
+          for (let i = 0; i < activeBookings.length; i++) {
+            const b = activeBookings[i];
+            if (h >= b.jamMulai && h < b.jamMulai + b.durasi) {
+              occupier = b;
+              break;
+            }
+          }
+
+          const inUserRange = h >= appState.selectedStartHour && h < appState.selectedStartHour + appState.selectedDuration;
+          let cls = 'slot-btn';
+          let stateLabel = 'Tersedia';
+          let disabledAttr = '';
+
+          if (occupier) {
+            if (inUserRange) {
+              cls += ' is-conflict';
+              stateLabel = 'Bentrok (' + occupier.id.slice(-5) + ')';
+            } else {
+              cls += ' is-booked';
+              stateLabel = 'Terisi (' + occupier.status.split(' ')[0] + ')';
+            }
+            disabledAttr = 'disabled';
+          } else if (inUserRange) {
+            if (conflictCheck.hasConflict) {
+              cls += ' is-conflict';
+              stateLabel = 'Melebihi/Bentrok';
+            } else {
+              cls += ' is-selected';
+              stateLabel = h === appState.selectedStartHour ? 'Jam Mulai' : 'Terpilih';
+            }
+          }
+
+          slotsHtml += `<button type="button" class="${cls}" ${disabledAttr} onclick="handleSelectStartHour(${h})">
+            <span class="slot-time">${formatHour(h)}–${formatHour(h + 1)}</span>
+            <span class="slot-state">${escapeHtml(stateLabel)}</span>
+          </button>`;
+        }
+        slotGrid.innerHTML = slotsHtml;
+      }
+
+      // Conflict Banner & Submit Button Guard
+      const alertBox = document.getElementById('slot-conflict-alert');
+      const submitBtn = document.getElementById('btn-submit-booking');
+      if (alertBox) {
+        if (conflictCheck.hasConflict) {
+          alertBox.className = 'notice-strip is-error';
+          alertBox.innerHTML = `<i data-lucide="alert-triangle" aria-hidden="true" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+            <div><strong>Jadwal Tidak Valid:</strong> ${escapeHtml(conflictCheck.reason)}</div>`;
+        } else {
+          const endH = appState.selectedStartHour + appState.selectedDuration;
+          alertBox.className = 'notice-strip is-success';
+          alertBox.innerHTML = `<i data-lucide="check-circle-2" aria-hidden="true" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+            <div><strong>Slot Tersedia:</strong> ${formatDateIndo(appState.selectedDate)}, pukul ${formatHour(appState.selectedStartHour)}–${formatHour(endH)} WIB (${appState.selectedDuration} jam) bebas bentrok.</div>`;
+        }
+      }
+      if (submitBtn) {
+        submitBtn.disabled = conflictCheck.hasConflict;
+      }
+    }
+
+    function handleDateChange(isoDate) {
+      if (!isoDate) return;
+      appState.selectedDate = isoDate;
+      renderCatalog();
+      renderScheduleModule();
+      renderSummaryPanel();
+      persistAppState();
+      refreshIcons();
+    }
+
+    function handleDurationChange(val) {
+      const parsed = parseInt(val, 10);
+      if (isNaN(parsed)) return;
+      appState.selectedDuration = parsed;
+      renderScheduleModule();
+      renderSummaryPanel();
+      persistAppState();
+      refreshIcons();
+    }
+
+    function handleSelectStartHour(hour) {
+      appState.selectedStartHour = hour;
+      renderScheduleModule();
+      renderSummaryPanel();
+      persistAppState();
+      refreshIcons();
+    }
+
+    // =========================================================================
+    // 8. COST SUMMARY & BOOKING FORM VALIDATION
+    // =========================================================================
+    function renderSummaryPanel() {
+      const unit = findUnit(appState.selectedUnitId);
+      const total = unit.hargaPerJam * appState.selectedDuration;
+      const endHour = appState.selectedStartHour + appState.selectedDuration;
+
+      const totalEl = document.getElementById('summary-total-price');
+      const durTag = document.getElementById('summary-duration-tag');
+      const unitEl = document.getElementById('summary-unit-name');
+      const dateEl = document.getElementById('summary-date-label');
+      const timeEl = document.getElementById('summary-time-range');
+      const rateEl = document.getElementById('summary-unit-rate');
+
+      if (totalEl) totalEl.textContent = formatRupiah(total);
+      if (durTag) durTag.textContent = appState.selectedDuration + ' Jam';
+      if (unitEl) unitEl.textContent = unit.nama;
+      if (dateEl) dateEl.textContent = formatDateIndo(appState.selectedDate);
+      if (timeEl) timeEl.textContent = formatHour(appState.selectedStartHour) + ' – ' + formatHour(endHour) + ' WIB';
+      if (rateEl) rateEl.textContent = formatRupiah(unit.hargaPerJam) + ' × ' + appState.selectedDuration + ' jam';
+    }
+
+    function setFieldError(inputId, errorId, message) {
+      const inp = document.getElementById(inputId);
+      const err = document.getElementById(errorId);
+      if (inp) inp.classList.toggle('is-invalid', Boolean(message));
+      if (err) err.textContent = message || '';
+    }
+
+    function normalizeWhatsApp(raw) {
+      const digits = raw.replace(/\D/g, '');
+      if (digits.startsWith('08')) return '62' + digits.slice(1);
+      if (digits.startsWith('8')) return '62' + digits;
+      return digits;
+    }
+
+    function handleBookingSubmit(event) {
+      event.preventDefault();
+      const formErrBox = document.getElementById('form-submit-error');
+      if (formErrBox) formErrBox.style.display = 'none';
+
+      const nameVal = (document.getElementById('cust-name')?.value || '').trim();
+      const idVal = (document.getElementById('cust-id')?.value || '').trim();
+      const waVal = (document.getElementById('cust-wa')?.value || '').trim();
+      const emailVal = (document.getElementById('cust-email')?.value || '').trim();
+      const orgVal = (document.getElementById('cust-org')?.value || '').trim();
+      const notesVal = (document.getElementById('cust-notes')?.value || '').trim();
+      const waNotify = Boolean(document.getElementById('cust-wa-notify')?.checked);
+
+      let valid = true;
+
+      if (nameVal.length < 3) {
+        setFieldError('cust-name', 'err-cust-name', 'Nama lengkap minimal 3 karakter.');
+        valid = false;
+      } else {
+        setFieldError('cust-name', 'err-cust-name', '');
+      }
+
+      const idDigits = idVal.replace(/\s+/g, '');
+      if (!/^[A-Za-z0-9]{8,20}$/.test(idDigits)) {
+        setFieldError('cust-id', 'err-cust-id', 'Masukkan nomor identitas valid (8–20 karakter huruf/angka, tanpa simbol).');
+        valid = false;
+      } else {
+        setFieldError('cust-id', 'err-cust-id', '');
+      }
+
+      const waDigits = waVal.replace(/\D/g, '');
+      if (!/^(08|628)[0-9]{8,13}$/.test(waDigits)) {
+        setFieldError('cust-wa', 'err-cust-wa', 'Nomor WhatsApp harus diawali 08 atau 628 (10–15 digit).');
+        valid = false;
+      } else {
+        setFieldError('cust-wa', 'err-cust-wa', '');
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+        setFieldError('cust-email', 'err-cust-email', 'Format email tidak valid (contoh: nama@domain.id).');
+        valid = false;
+      } else {
+        setFieldError('cust-email', 'err-cust-email', '');
+      }
+
+      // Final anti-double-booking server-style guard
+      const conflict = checkScheduleConflict(
+        appState.selectedUnitId,
+        appState.selectedDate,
+        appState.selectedStartHour,
+        appState.selectedDuration
+      );
+
+      if (conflict.hasConflict) {
+        if (formErrBox) {
+          formErrBox.textContent = 'Pemesanan ditolak: ' + conflict.reason;
+          formErrBox.style.display = 'flex';
+        }
+        return;
+      }
+
+      if (!valid) {
+        if (formErrBox) {
+          formErrBox.textContent = 'Periksa kembali kolom bertanda merah sebelum melanjutkan pembayaran.';
+          formErrBox.style.display = 'flex';
+        }
+        return;
+      }
+
+      // Persist ERD records: PELANGGAN -> RESERVASI -> PEMBAYARAN
+      const customerId = 'CUST-' + String(Date.now()).slice(-6);
+      const newCustomer = {
+        id: customerId,
+        nama: nameVal,
+        identitas: idDigits,
+        whatsapp: waDigits,
+        email: emailVal,
+        instansi: orgVal || 'Perorangan'
+      };
+      appState.customers.push(newCustomer);
+
+      const unit = findUnit(appState.selectedUnitId);
+      const totalBiaya = unit.hargaPerJam * appState.selectedDuration;
+      const dateCompact = appState.selectedDate.replace(/-/g, '');
+      const seqNum = String(appState.reservations.length + 1).padStart(2, '0');
+      const resId = 'RSV-' + dateCompact + '-' + seqNum + '-' + String(Math.floor(10 + Math.random() * 89));
+
+      const newReservation = {
+        id: resId,
+        unitId: unit.id,
+        customerId: customerId,
+        tanggal: appState.selectedDate,
+        jamMulai: appState.selectedStartHour,
+        durasi: appState.selectedDuration,
+        catatan: notesVal || '-',
+        totalBiaya: totalBiaya,
+        status: 'Menunggu Pembayaran',
+        waNotify: waNotify,
+        dibuatPada: new Date().toISOString()
+      };
+      appState.reservations.unshift(newReservation);
+
+      const payId = 'PAY-' + String(Date.now()).slice(-6);
+      const newPayment = {
+        id: payId,
+        reservationId: resId,
+        metode: appState.selectedPayMethod,
+        kanal: appState.selectedPayChannel,
+        referensi: 'INV-' + dateCompact + '-' + seqNum,
+        jumlah: totalBiaya,
+        status: 'Belum Bayar',
+        waktuBayar: null
+      };
+      appState.payments.unshift(newPayment);
+
+      appState.activePaymentReservationId = resId;
+      paymentRemainingSeconds = 900;
+
+      // Clear form fields after creation
+      const formEl = document.getElementById('booking-form');
+      if (formEl) formEl.reset();
+
+      updateHeaderBadges();
+      renderCatalog();
+      renderScheduleModule();
+      renderPaymentModule();
+      persistAppState();
+      showGlobalBanner(`Reservasi ${resId} berhasil dibuat dan slot jadwal telah dikunci. Silakan selesaikan pembayaran simulasi di panel kanan.`, 'success');
+      refreshIcons();
+    }
+
+    // =========================================================================
+    // 9. INSTANT PAYMENT SIMULATION MODULE (QRIS, E-WALLET, TRANSFER BANK)
+    // =========================================================================
+    function buildDeterministicQrSvg(seedText) {
+      const size = 21;
+      let hash = 2166136261;
+      for (let i = 0; i < seedText.length; i++) {
+        hash ^= seedText.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+
+      let rects = '';
+      function isFinder(r, c) {
+        const topLeft = r < 7 && c < 7;
+        const topRight = r < 7 && c >= size - 7;
+        const botLeft = r >= size - 7 && c < 7;
+        return topLeft || topRight || botLeft;
+      }
+
+      function finderFilled(r, c) {
+        const lr = r >= size - 7 ? r - (size - 7) : r;
+        const lc = c >= size - 7 ? c - (size - 7) : c;
+        if (lr === 0 || lr === 6 || lc === 0 || lc === 6) return true;
+        if (lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4) return true;
+        return false;
+      }
+
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          let filled = false;
+          if (isFinder(r, c)) {
+            filled = finderFilled(r, c);
+          } else {
+            hash ^= (r * 31 + c * 17);
+            hash = Math.imul(hash, 16777619);
+            filled = (Math.abs(hash) % 10) > 4;
+          }
+          if (filled) {
+            rects += `<rect x="${c}" y="${r}" width="1" height="1" fill="currentColor" />`;
+          }
+        }
+      }
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="104" height="104" aria-hidden="true" style="color: var(--on-surface);">${rects}</svg>`;
+    }
+
+    function startPaymentCountdown() {
+      if (paymentCountdownTimer) clearInterval(paymentCountdownTimer);
+      paymentCountdownTimer = setInterval(function () {
+        if (paymentRemainingSeconds > 0) paymentRemainingSeconds--;
+        const timerEl = document.getElementById('pay-countdown-label');
+        if (timerEl) {
+          const mm = String(Math.floor(paymentRemainingSeconds / 60)).padStart(2, '0');
+          const ss = String(paymentRemainingSeconds % 60).padStart(2, '0');
+          timerEl.textContent = mm + ':' + ss;
+        }
+      }, 1000);
+    }
+
+    function renderPaymentModule() {
+      const section = document.getElementById('payment-module-section');
+      const body = document.getElementById('payment-module-body');
+      const badge = document.getElementById('pay-status-badge');
+      if (!section || !body) return;
+
+      if (!appState.activePaymentReservationId) {
+        section.style.display = 'none';
+        return;
+      }
+
+      const res = appState.reservations.find(function (r) { return r.id === appState.activePaymentReservationId; });
+      if (!res) {
+        section.style.display = 'none';
+        return;
+      }
+
+      const unit = findUnit(res.unitId);
+      const cust = findCustomer(res.customerId);
+      const pay = findPaymentByReservation(res.id);
+      section.style.display = 'block';
+
+      if (badge) {
+        if (res.status === 'Terkonfirmasi' || res.status === 'Selesai') {
+          badge.className = 'tag tag-success';
+          badge.textContent = 'Lunas & Terkonfirmasi';
+        } else if (res.status === 'Dibatalkan') {
+          badge.className = 'tag tag-error';
+          badge.textContent = 'Dibatalkan';
+        } else {
+          badge.className = 'tag tag-warning';
+          badge.textContent = 'Menunggu Pembayaran';
+        }
+      }
+
+      const endHour = res.jamMulai + res.durasi;
+      const waMessage = `Halo ${cust ? cust.nama : 'Pelanggan'},\nReservasi Anda *${res.id}* telah *${res.status.toUpperCase()}*.\n• Unit: ${unit.nama}\n• Jadwal: ${formatDateIndo(res.tanggal)}, ${formatHour(res.jamMulai)}–${formatHour(endHour)} WIB (${res.durasi} jam)\n• Total: ${formatRupiah(res.totalBiaya)}\n• Pembayaran: ${pay ? pay.metode + ' (' + pay.kanal + ') — ' + pay.status : '-'}\nTerima kasih telah memesan melalui Sistem Reservasi Digital.`;
+
+      if (res.status === 'Terkonfirmasi' || res.status === 'Selesai') {
+        if (paymentCountdownTimer) clearInterval(paymentCountdownTimer);
+        body.innerHTML = `
+          <div class="notice-strip is-success">
+            <i data-lucide="badge-check" aria-hidden="true" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
+            <div>
+              <strong>Pembayaran Berhasil Diverifikasi!</strong><br>
+              Ref: <span class="label-mono">${escapeHtml(pay ? pay.referensi : '-')}</span> • Metode: ${escapeHtml(pay ? pay.kanal : '-')}
+            </div>
+          </div>
+
+          <dl class="summary-list" style="background-color: var(--background); padding: var(--space-md); border: var(--rule);">
+            <div class="summary-row"><dt>Kode Booking</dt><dd>${escapeHtml(res.id)}</dd></div>
+            <div class="summary-row"><dt>Pemesan</dt><dd>${escapeHtml(cust ? cust.nama : '-')}</dd></div>
+            <div class="summary-row"><dt>Unit</dt><dd>${escapeHtml(unit.nama)}</dd></div>
+            <div class="summary-row"><dt>Jadwal Terkunci</dt><dd>${formatHour(res.jamMulai)}–${formatHour(endHour)} WIB (${res.tanggal})</dd></div>
+            <div class="summary-row"><dt>Total Dibayar</dt><dd>${formatRupiah(res.totalBiaya)}</dd></div>
+          </dl>
+
+          <div>
+            <p class="label-mono" style="margin-bottom: var(--space-xs);">PRATINJAU NOTIFIKASI WHATSAPP (${cust ? escapeHtml(normalizeWhatsApp(cust.whatsapp)) : ''})</p>
+            <div class="wa-preview" id="wa-receipt-preview">${escapeHtml(waMessage)}</div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-secondary btn-compact" onclick="copyTextValue('wa-receipt-preview', this)">
+              <i data-lucide="copy" aria-hidden="true" style="width: 15px; height: 15px;"></i>
+              <span>Salin Pesan WhatsApp</span>
+            </button>
+            <button type="button" class="btn btn-primary btn-compact" onclick="downloadReceiptTxt('${res.id}')">
+              <i data-lucide="file-text" aria-hidden="true" style="width: 15px; height: 15px;"></i>
+              <span>Unduh Bukti (.txt)</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-compact" onclick="closePaymentPanel()">Tutup Panel</button>
+          </div>
+        `;
+        return;
+      }
+
+      if (res.status === 'Dibatalkan') {
+        if (paymentCountdownTimer) clearInterval(paymentCountdownTimer);
+        body.innerHTML = `<div class="notice-strip is-error">
+          <div>Reservasi <strong>${escapeHtml(res.id)}</strong> telah dibatalkan. Slot jadwal sudah dilepaskan kembali.</div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-compact" onclick="closePaymentPanel()">Tutup Panel</button>`;
+        return;
+      }
+
+      // Status: Menunggu Pembayaran
+      const mm = String(Math.floor(paymentRemainingSeconds / 60)).padStart(2, '0');
+      const ss = String(paymentRemainingSeconds % 60).padStart(2, '0');
+
+      let methodDetailHtml = '';
+      if (appState.selectedPayMethod === 'QRIS') {
+        const qrSvg = buildDeterministicQrSvg(res.id + ':' + res.totalBiaya);
+        methodDetailHtml = `
+          <div class="qris-box">
+            <div class="qr-svg-wrap">${qrSvg}</div>
+            <div>
+              <p class="label-mono">QRIS DINAMIS OTOMATIS</p>
+              <p style="margin: var(--space-xs) 0; font-weight: 600;">${formatRupiah(res.totalBiaya)}</p>
+              <ol style="margin: 0; padding-left: 1.1rem; font-size: var(--label-size); color: var(--on-surface-variant);">
+                <li>Buka aplikasi m-Banking atau E-Wallet (GoPay, OVO, DANA, ShopeePay, BCA/Mandiri).</li>
+                <li>Pilih menu <strong>Scan QRIS</strong> lalu arahkan kamera ke kode di samping.</li>
+                <li>Periksa nominal &amp; klik Konfirmasi Simulasi Bayar di bawah.</li>
+              </ol>
+            </div>
+          </div>
+        `;
+      } else if (appState.selectedPayMethod === 'E-Wallet') {
+        const wallets = ['GoPay', 'OVO', 'DANA', 'ShopeePay'];
+        const currentWallet = wallets.indexOf(appState.selectedPayChannel) !== -1 ? appState.selectedPayChannel : 'GoPay';
+        appState.selectedPayChannel = currentWallet;
+        methodDetailHtml = `
+          <div style="display: grid; gap: var(--space-sm); background-color: var(--background); padding: var(--space-md); border: var(--rule);">
+            <div class="field-group">
+              <label class="field-label" for="ewallet-channel-select">Pilih Dompet Digital</label>
+              <select id="ewallet-channel-select" class="field-control" onchange="selectPaymentChannel(this.value)">
+                ${wallets.map(function (w) { return `<option value="${w}"${w === currentWallet ? ' selected' : ''}>${w}</option>`; }).join('')}
+              </select>
+            </div>
+            <div class="va-display">
+              <span id="pay-target-code">0851-4122-8577 (${escapeHtml(currentWallet)})</span>
+              <button type="button" class="btn btn-ghost btn-compact" onclick="copyTextValue('pay-target-code', this)">Salin</button>
+            </div>
+            <p class="field-helper" style="margin: 0;">Pastikan nominal transfer sesuai hingga digit terakhir: <strong>${formatRupiah(res.totalBiaya)}</strong>.</p>
+          </div>
+        `;
+      } else {
+        const banks = [
+          { label: 'BCA Virtual Account', prefix: '88010' },
+          { label: 'Mandiri Virtual Account', prefix: '89022' },
+          { label: 'BNI Virtual Account', prefix: '88088' },
+          { label: 'BRI Virtual Account (BRIVA)', prefix: '77015' }
+        ];
+        const foundBank = banks.find(function (b) { return b.label === appState.selectedPayChannel; }) || banks[0];
+        appState.selectedPayChannel = foundBank.label;
+        const vaNum = foundBank.prefix + '00' + res.id.replace(/\D/g, '').slice(-8);
+        methodDetailHtml = `
+          <div style="display: grid; gap: var(--space-sm); background-color: var(--background); padding: var(--space-md); border: var(--rule);">
+            <div class="field-group">
+              <label class="field-label" for="bank-channel-select">Pilih Bank Virtual Account</label>
+              <select id="bank-channel-select" class="field-control" onchange="selectPaymentChannel(this.value)">
+                ${banks.map(function (b) { return `<option value="${b.label}"${b.label === foundBank.label ? ' selected' : ''}>${b.label}</option>`; }).join('')}
+              </select>
+            </div>
+            <div class="va-display">
+              <span id="pay-target-code">${escapeHtml(vaNum)}</span>
+              <button type="button" class="btn btn-ghost btn-compact" onclick="copyTextValue('pay-target-code', this)">Salin VA</button>
+            </div>
+            <p class="field-helper" style="margin: 0;">Pembayaran Virtual Account terverifikasi otomatis oleh gateway setelah Anda menekan konfirmasi simulasi.</p>
+          </div>
+        `;
+      }
+
+      body.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--background); padding: var(--space-sm) var(--space-md); border: var(--rule);">
+          <div>
+            <span class="label-mono">KODE: ${escapeHtml(res.id)}</span>
+            <div style="font-weight: 600;">${formatRupiah(res.totalBiaya)}</div>
+          </div>
+          <div style="text-align: right;">
+            <span class="label-mono">BATAS BAYAR</span>
+            <div class="label-mono" style="font-size: var(--label-size); font-weight: 600; color: var(--on-surface-variant);">Lihat timer di atas</div>
+          </div>
+        </div>
+
+        <div>
+          <p class="label-mono" style="margin-bottom: var(--space-xs);">PILIH METODE PEMBAYARAN INSTANT</p>
+          <div class="pay-methods" role="group" aria-label="Metode Pembayaran">
+            <button type="button" class="pay-method-btn${appState.selectedPayMethod === 'QRIS' ? ' is-active' : ''}" onclick="selectPaymentMethod('QRIS')">QRIS</button>
+            <button type="button" class="pay-method-btn${appState.selectedPayMethod === 'E-Wallet' ? ' is-active' : ''}" onclick="selectPaymentMethod('E-Wallet')">E-Wallet</button>
+            <button type="button" class="pay-method-btn${appState.selectedPayMethod === 'Transfer Bank' ? ' is-active' : ''}" onclick="selectPaymentMethod('Transfer Bank')">Transfer Bank</button>
+          </div>
+        </div>
+
+        ${methodDetailHtml}
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" style="flex: 1;" onclick="confirmSimulatedPayment('${res.id}')">
+            <span>Konfirmasi &amp; Simulasi Bayar Lunas</span>
+            <i data-lucide="check" aria-hidden="true" style="width: 18px; height: 18px;"></i>
+          </button>
+          <button type="button" class="btn btn-secondary btn-compact" onclick="cancelReservationInline('${res.id}', this)">Batalkan Order</button>
+        </div>
+      `;
+
+      startPaymentCountdown();
+    }
+
+    function selectPaymentMethod(method) {
+      appState.selectedPayMethod = method;
+      if (method === 'QRIS') appState.selectedPayChannel = 'QRIS Dinamis';
+      if (method === 'E-Wallet') appState.selectedPayChannel = 'GoPay';
+      if (method === 'Transfer Bank') appState.selectedPayChannel = 'BCA Virtual Account';
+      renderPaymentModule();
+      refreshIcons();
+    }
+
+    function selectPaymentChannel(channel) {
+      appState.selectedPayChannel = channel;
+      renderPaymentModule();
+      refreshIcons();
+    }
+
+    function confirmSimulatedPayment(resId) {
+      const res = appState.reservations.find(function (r) { return r.id === resId; });
+      if (!res) return;
+      res.status = 'Terkonfirmasi';
+
+      let pay = findPaymentByReservation(resId);
+      const nowIso = new Date().toISOString();
+      if (!pay) {
+        pay = {
+          id: 'PAY-' + String(Date.now()).slice(-6),
+          reservationId: resId,
+          metode: appState.selectedPayMethod,
+          kanal: appState.selectedPayChannel,
+          referensi: 'SIM-' + String(Date.now()).slice(-6),
+          jumlah: res.totalBiaya,
+          status: 'Lunas',
+          waktuBayar: nowIso
+        };
+        appState.payments.unshift(pay);
+      } else {
+        pay.metode = appState.selectedPayMethod;
+        pay.kanal = appState.selectedPayChannel;
+        pay.status = 'Lunas';
+        pay.waktuBayar = nowIso;
+      }
+
+      updateHeaderBadges();
+      renderScheduleModule();
+      renderPaymentModule();
+      if (appState.activeView === 'analytics') renderAnalyticsDashboard();
+      persistAppState();
+      showGlobalBanner(`Pembayaran untuk ${resId} berhasil dikonfirmasi Lunas via ${pay.kanal}.`, 'success');
+      refreshIcons();
+    }
+
+    function cancelReservationInline(resId, btn) {
+      if (btn && btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = 'Klik lagi untuk batalkan';
+        return;
+      }
+      const res = appState.reservations.find(function (r) { return r.id === resId; });
+      if (!res) return;
+      res.status = 'Dibatalkan';
+      const pay = findPaymentByReservation(resId);
+      if (pay) pay.status = 'Dibatalkan';
+
+      updateHeaderBadges();
+      renderCatalog();
+      renderScheduleModule();
+      renderPaymentModule();
+      if (appState.activeView === 'analytics') renderAnalyticsDashboard();
+      persistAppState();
+      showGlobalBanner(`Reservasi ${resId} dibatalkan dan slot jam telah tersedia kembali.`, 'warning');
+      refreshIcons();
+    }
+
+    function closePaymentPanel() {
+      appState.activePaymentReservationId = null;
+      if (paymentCountdownTimer) clearInterval(paymentCountdownTimer);
+      renderPaymentModule();
+      persistAppState();
+    }
+
+    function copyTextValue(elementId, btn) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.textContent || '';
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(text).then(function () {
+          if (btn) {
+            const orig = btn.innerHTML;
+            btn.textContent = 'Tersalin!';
+            setTimeout(function () { btn.innerHTML = orig; refreshIcons(); }, 1600);
+          }
+        }).catch(function () {});
+      }
+    }
+
+    function downloadReceiptTxt(resId) {
+      const res = appState.reservations.find(function (r) { return r.id === resId; });
+      if (!res) return;
+      const unit = findUnit(res.unitId);
+      const cust = findCustomer(res.customerId);
+      const pay = findPaymentByReservation(res.id);
+      const endH = res.jamMulai + res.durasi;
+      const txt = [
+        'BUKTI RESERVASI DIGITAL',
+        '========================================',
+        'Kode Booking   : ' + res.id,
+        'Status Order   : ' + res.status,
+        'Tanggal Sewa   : ' + formatDateIndo(res.tanggal),
+        'Jam Sewa       : ' + formatHour(res.jamMulai) + ' - ' + formatHour(endH) + ' WIB (' + res.durasi + ' jam)',
+        'Unit           : ' + unit.id + ' - ' + unit.nama,
+        'Lokasi         : ' + unit.lokasi,
+        '----------------------------------------',
+        'Pelanggan      : ' + (cust ? cust.nama : '-'),
+        'Identitas      : ' + (cust ? cust.identitas : '-'),
+        'WhatsApp       : ' + (cust ? cust.whatsapp : '-'),
+        'Instansi       : ' + (cust ? cust.instansi : '-'),
+        '----------------------------------------',
+        'Metode Bayar   : ' + (pay ? pay.metode + ' (' + pay.kanal + ')' : '-'),
+        'Ref Pembayaran : ' + (pay ? pay.referensi : '-'),
+        'Status Bayar   : ' + (pay ? pay.status : '-'),
+        'Total Biaya    : ' + formatRupiah(res.totalBiaya),
+        '========================================'
+      ].join('\n');
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === 'function') {
+        window.notebookAppApi.triggerFileDownload({
+          content: txt,
+          contentType: 'text/plain',
+          encoding: 'UTF-8',
+          filename: res.id + '.txt'
+        });
+      }
+    }
+
+    // =========================================================================
+    // 10. OWNER ANALYTICS & REPORTING DASHBOARD
+    // =========================================================================
+    function syncAnalyticsFilterInputs() {
+      const modeSel = document.getElementById('analytics-period-mode');
+      const dayInp = document.getElementById('analytics-day-input');
+      const monthInp = document.getElementById('analytics-month-input');
+      const dayGrp = document.getElementById('analytics-day-group');
+      const monthGrp = document.getElementById('analytics-month-group');
+
+      if (modeSel) modeSel.value = appState.analyticsFilter.periodMode;
+      if (dayInp && !dayInp.value) dayInp.value = appState.analyticsFilter.day;
+      if (monthInp && !monthInp.value) monthInp.value = appState.analyticsFilter.month;
+
+      if (dayGrp) dayGrp.style.display = appState.analyticsFilter.periodMode === 'daily' ? 'flex' : 'none';
+      if (monthGrp) monthGrp.style.display = appState.analyticsFilter.periodMode === 'monthly' ? 'flex' : 'none';
+    }
+
+    function handleAnalyticsFilterChange() {
+      appState.analyticsFilter.periodMode = document.getElementById('analytics-period-mode')?.value || 'monthly';
+      appState.analyticsFilter.day = document.getElementById('analytics-day-input')?.value || TODAY_ISO;
+      appState.analyticsFilter.month = document.getElementById('analytics-month-input')?.value || '2026-11';
+      appState.analyticsFilter.category = document.getElementById('analytics-category-filter')?.value || 'all';
+      appState.analyticsFilter.status = document.getElementById('analytics-status-filter')?.value || 'all';
+      appState.analyticsFilter.search = (document.getElementById('analytics-search-input')?.value || '').trim().toLowerCase();
+      syncAnalyticsFilterInputs();
+      renderAnalyticsDashboard();
+      refreshIcons();
+    }
+
+    function getFilteredAnalyticsRecords() {
+      const f = appState.analyticsFilter;
+      return appState.reservations.filter(function (r) {
+        if (f.periodMode === 'daily' && r.tanggal !== f.day) return false;
+        if (f.periodMode === 'monthly' && !r.tanggal.startsWith(f.month)) return false;
+
+        const unit = findUnit(r.unitId);
+        if (f.category !== 'all' && unit.kategoriId !== f.category) return false;
+        if (f.status !== 'all' && r.status !== f.status) return false;
+
+        if (f.search) {
+          const cust = findCustomer(r.customerId);
+          const hay = (r.id + ' ' + unit.nama + ' ' + (cust ? cust.nama + ' ' + cust.whatsapp + ' ' + cust.instansi : '')).toLowerCase();
+          if (hay.indexOf(f.search) === -1) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderAnalyticsDashboard() {
+      syncAnalyticsFilterInputs();
+      const rows = getFilteredAnalyticsRecords();
+
+      let paidRevenue = 0;
+      let paidCount = 0;
+      let pendingCount = 0;
+      let activeHours = 0;
+      let nonCancelledCount = 0;
+
+      rows.forEach(function (r) {
+        const pay = findPaymentByReservation(r.id);
+        const isPaid = pay && pay.status === 'Lunas' && r.status !== 'Dibatalkan';
+        if (isPaid) {
+          paidRevenue += r.totalBiaya;
+          paidCount++;
+        }
+        if (r.status === 'Menunggu Pembayaran') pendingCount++;
+        if (r.status !== 'Dibatalkan') {
+          activeHours += r.durasi;
+          nonCancelledCount++;
+        }
+      });
+
+      const avgOrder = paidCount > 0 ? Math.round(paidRevenue / paidCount) : 0;
+      const avgHours = nonCancelledCount > 0 ? (activeHours / nonCancelledCount).toFixed(1) : '0';
+      const convRate = nonCancelledCount > 0 ? Math.round((paidCount / nonCancelledCount) * 100) : 0;
+
+      const elRev = document.getElementById('kpi-total-revenue');
+      const elRevSub = document.getElementById('kpi-revenue-sub');
+      const elBook = document.getElementById('kpi-total-bookings');
+      const elBookSub = document.getElementById('kpi-bookings-sub');
+      const elHrs = document.getElementById('kpi-total-hours');
+      const elHrsSub = document.getElementById('kpi-hours-sub');
+      const elAvg = document.getElementById('kpi-avg-order');
+      const elConv = document.getElementById('kpi-conversion-sub');
+
+      if (elRev) elRev.textContent = formatRupiah(paidRevenue);
+      if (elRevSub) elRevSub.textContent = paidCount + ' transaksi berstatus Lunas';
+      if (elBook) elBook.textContent = String(rows.length);
+      if (elBookSub) elBookSub.textContent = pendingCount + ' menunggu pembayaran';
+      if (elHrs) elHrs.textContent = activeHours + ' jam';
+      if (elHrsSub) elHrsSub.textContent = 'Rata-rata ' + avgHours + ' jam / order';
+      if (elAvg) elAvg.textContent = formatRupiah(avgOrder);
+      if (elConv) elConv.textContent = 'Rasio pelunasan ' + convRate + '%';
+
+      renderAnalyticsCharts(rows);
+      renderAnalyticsTable(rows);
+    }
+
+    function renderAnalyticsCharts(rows) {
+      if (typeof window.Chart !== 'function') return;
+
+      const blue = getCssToken('--data-1') || '#0f62fe';
+      const purple = getCssToken('--data-2') || '#6929c4';
+      const teal = getCssToken('--data-3') || '#005d5d';
+      const magenta = getCssToken('--data-4') || '#9f1853';
+      const gray = getCssToken('--data-context') || '#8d8d8d';
+      const gridColor = getCssToken('--outline-variant') || '#e0e0e0';
+      const tickColor = getCssToken('--on-surface-variant') || '#525252';
+      const monoFont = getCssToken('--font-label') || 'monospace';
+
+      // 1. Trend Chart (grouped by date)
+      const trendMap = {};
+      rows.forEach(function (r) {
+        const pay = findPaymentByReservation(r.id);
+        if (pay && pay.status === 'Lunas' && r.status !== 'Dibatalkan') {
+          trendMap[r.tanggal] = (trendMap[r.tanggal] || 0) + r.totalBiaya;
+        }
+      });
+      const sortedDates = Object.keys(trendMap).sort();
+      const trendLabels = sortedDates.length > 0 ? sortedDates.map(function (d) { return d.slice(5); }) : ['Belum Ada Data'];
+      const trendValues = sortedDates.length > 0 ? sortedDates.map(function (d) { return trendMap[d]; }) : [0];
+
+      const trendTitle = document.getElementById('chart-trend-title');
+      if (trendTitle) {
+        trendTitle.textContent = appState.analyticsFilter.periodMode === 'daily'
+          ? 'Omset Tanggal Terpilih (' + appState.analyticsFilter.day + ')'
+          : 'Tren Omset per Tanggal';
+      }
+
+      const trendCanvas = document.getElementById('revenue-trend-chart');
+      if (trendCanvas) {
+        if (revenueChartInstance) revenueChartInstance.destroy();
+        revenueChartInstance = new window.Chart(trendCanvas, {
+          type: 'bar',
+          data: {
+            labels: trendLabels,
+            datasets: [{
+              label: 'Omset Lunas (Rp)',
+              data: trendValues,
+              backgroundColor: blue,
+              borderRadius: 0,
+              barPercentage: 0.6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: tickColor, font: { family: monoFont, size: 11 } }
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: monoFont, size: 11 },
+                  callback: function (v) { return 'Rp ' + (Number(v) / 1000).toLocaleString('id-ID') + 'k'; }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Category Breakdown Chart
+      const catList = CATEGORIES.filter(function (c) { return c.id !== 'all'; });
+      const catTotals = {};
+      catList.forEach(function (c) { catTotals[c.id] = 0; });
+      rows.forEach(function (r) {
+        const pay = findPaymentByReservation(r.id);
+        if (pay && pay.status === 'Lunas' && r.status !== 'Dibatalkan') {
+          const u = findUnit(r.unitId);
+          catTotals[u.kategoriId] = (catTotals[u.kategoriId] || 0) + r.totalBiaya;
+        }
+      });
+
+      const catCanvas = document.getElementById('category-breakdown-chart');
+      if (catCanvas) {
+        if (categoryChartInstance) categoryChartInstance.destroy();
+        categoryChartInstance = new window.Chart(catCanvas, {
+          type: 'bar',
+          data: {
+            labels: catList.map(function (c) { return c.nama; }),
+            datasets: [{
+              label: 'Omset Kategori (Rp)',
+              data: catList.map(function (c) { return catTotals[c.id]; }),
+              backgroundColor: [blue, purple, teal, magenta, gray],
+              borderRadius: 0
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: monoFont, size: 11 },
+                  callback: function (v) { return 'Rp ' + (Number(v) / 1000).toLocaleString('id-ID') + 'k'; }
+                }
+              },
+              y: {
+                grid: { display: false },
+                ticks: { color: tickColor, font: { family: monoFont, size: 11 } }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function renderAnalyticsTable(rows) {
+      const tbody = document.getElementById('analytics-table-body');
+      const countLabel = document.getElementById('table-row-count');
+      if (!tbody) return;
+      if (countLabel) countLabel.textContent = rows.length + ' transaksi';
+
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr>
+          <td colspan="8" style="padding: var(--space-lg); text-align: left;">
+            <strong>Belum ada transaksi pada filter ini.</strong> Ubah periode/status filter atau buat reservasi baru pada tab Katalog &amp; Reservasi.
+          </td>
+        </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(function (r) {
+        const unit = findUnit(r.unitId);
+        const cat = findCategory(unit.kategoriId);
+        const cust = findCustomer(r.customerId);
+        const pay = findPaymentByReservation(r.id);
+        const endH = r.jamMulai + r.durasi;
+
+        let tagClass = 'tag-neutral';
+        if (r.status === 'Terkonfirmasi' || r.status === 'Selesai') tagClass = 'tag-success';
+        else if (r.status === 'Menunggu Pembayaran') tagClass = 'tag-warning';
+        else if (r.status === 'Dibatalkan') tagClass = 'tag-error';
+
+        let actionBtns = '';
+        if (r.status === 'Menunggu Pembayaran') {
+          actionBtns += `<button type="button" class="btn btn-primary btn-compact" onclick="openPaymentForReservation('${r.id}')">Bayar</button>`;
+          actionBtns += `<button type="button" class="btn btn-secondary btn-compact" onclick="cancelReservationInline('${r.id}', this)">Batal</button>`;
+        } else if (r.status === 'Terkonfirmasi') {
+          actionBtns += `<button type="button" class="btn btn-secondary btn-compact" onclick="markReservationDone('${r.id}')">Selesai</button>`;
+          actionBtns += `<button type="button" class="btn btn-ghost btn-compact" onclick="openPaymentForReservation('${r.id}')">Struk</button>`;
+        } else if (r.status === 'Selesai') {
+          actionBtns += `<button type="button" class="btn btn-ghost btn-compact" onclick="openPaymentForReservation('${r.id}')">Struk</button>`;
+        } else {
+          actionBtns += `<span class="field-helper">Ditutup</span>`;
+        }
+
+        return `<tr>
+          <td>
+            <div class="label-mono" style="color: var(--on-surface); font-weight: 600;">${escapeHtml(r.id)}</div>
+            <div class="field-helper">${escapeHtml(r.tanggal)}</div>
+          </td>
+          <td>
+            <div style="font-family: var(--font-label);">${formatHour(r.jamMulai)}–${formatHour(endH)}</div>
+            <div class="field-helper">${r.durasi} jam</div>
+          </td>
+          <td>
+            <div style="font-weight: 500;">${escapeHtml(unit.nama)}</div>
+            <div class="field-helper">${escapeHtml(cat.nama)}</div>
+          </td>
+          <td>
+            <div style="font-weight: 500;">${escapeHtml(cust ? cust.nama : '-')}</div>
+            <div class="field-helper">${escapeHtml(cust ? cust.whatsapp : '-')} • ${escapeHtml(cust ? cust.instansi : '')}</div>
+          </td>
+          <td>
+            <div>${escapeHtml(pay ? pay.metode : '-')}</div>
+            <div class="field-helper">${escapeHtml(pay ? pay.kanal : '')} (${escapeHtml(pay ? pay.status : '-')})</div>
+          </td>
+          <td class="num-col">${formatRupiah(r.totalBiaya)}</td>
+          <td><span class="tag ${tagClass}">${escapeHtml(r.status)}</span></td>
+          <td><div class="btn-row">${actionBtns}</div></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function openPaymentForReservation(resId) {
+      appState.activePaymentReservationId = resId;
+      switchView('booking');
+      const paySection = document.getElementById('payment-module-section');
+      if (paySection) paySection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function markReservationDone(resId) {
+      const res = appState.reservations.find(function (r) { return r.id === resId; });
+      if (!res) return;
+      res.status = 'Selesai';
+      renderAnalyticsDashboard();
+      persistAppState();
+      const notice = document.getElementById('analytics-inline-notice');
+      if (notice) {
+        notice.className = 'notice-strip is-success';
+        notice.textContent = `Reservasi ${resId} ditandai Selesai.`;
+        notice.style.display = 'flex';
+      }
+      refreshIcons();
+    }
+
+    function exportAnalyticsCsv() {
+      const rows = getFilteredAnalyticsRecords();
+      const header = ['Kode Booking', 'Tanggal', 'Jam Mulai', 'Durasi (Jam)', 'Unit', 'Kategori', 'Pelanggan', 'WhatsApp', 'Metode Bayar', 'Status Bayar', 'Total Biaya', 'Status Reservasi'];
+      const lines = [header.join(',')];
+
+      rows.forEach(function (r) {
+        const unit = findUnit(r.unitId);
+        const cat = findCategory(unit.kategoriId);
+        const cust = findCustomer(r.customerId);
+        const pay = findPaymentByReservation(r.id);
+        const cols = [
+          r.id,
+          r.tanggal,
+          formatHour(r.jamMulai),
+          r.durasi,
+          '"' + unit.nama.replace(/"/g, '""') + '"',
+          '"' + cat.nama + '"',
+          '"' + (cust ? cust.nama.replace(/"/g, '""') : '-') + '"',
+          cust ? cust.whatsapp : '-',
+          pay ? pay.metode : '-',
+          pay ? pay.status : '-',
+          r.totalBiaya,
+          r.status
+        ];
+        lines.push(cols.join(','));
+      });
+
+      const csvContent = lines.join('\n');
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === 'function') {
+        window.notebookAppApi.triggerFileDownload({
+          content: csvContent,
+          contentType: 'text/csv',
+          encoding: 'UTF-8',
+          filename: 'laporan-reservasi-' + TODAY_ISO + '.csv'
+        });
+      }
+    }
+
+    // =========================================================================
+    // 11. ERD ARCHITECTURE VIEW & DATA RESET
+    // =========================================================================
+    function renderErdSchema() {
+      const grid = document.getElementById('erd-schema-grid');
+      if (!grid) return;
+
+      const entities = [
+        {
+          name: 'KATEGORI_UNIT',
+          count: CATEGORIES.length - 1,
+          fields: [
+            ['id_kategori', 'PK • VARCHAR'],
+            ['nama_kategori', 'VARCHAR(80)'],
+            ['ikon_kode', 'VARCHAR(40)']
+          ]
+        },
+        {
+          name: 'UNIT_SEWA',
+          count: UNITS.length,
+          fields: [
+            ['id_unit', 'PK • VARCHAR'],
+            ['id_kategori', 'FK → KATEGORI_UNIT'],
+            ['nama_unit', 'VARCHAR(120)'],
+            ['harga_per_jam', 'INT (IDR)'],
+            ['min_durasi', 'INT (JAM)']
+          ]
+        },
+        {
+          name: 'PELANGGAN',
+          count: appState.customers.length,
+          fields: [
+            ['id_pelanggan', 'PK • VARCHAR'],
+            ['nama_lengkap', 'VARCHAR(100)'],
+            ['nomor_identitas', 'VARCHAR(20)'],
+            ['no_whatsapp', 'VARCHAR(18)'],
+            ['email', 'VARCHAR(100)']
+          ]
+        },
+        {
+          name: 'RESERVASI',
+          count: appState.reservations.length,
+          fields: [
+            ['id_reservasi', 'PK • VARCHAR'],
+            ['id_unit', 'FK → UNIT_SEWA'],
+            ['id_pelanggan', 'FK → PELANGGAN'],
+            ['tanggal_sewa', 'DATE (ISO)'],
+            ['jam_mulai / durasi', 'INT (07..21)'],
+            ['status_reservasi', 'ENUM']
+          ]
+        },
+        {
+          name: 'PEMBAYARAN',
+          count: appState.payments.length,
+          fields: [
+            ['id_pembayaran', 'PK • VARCHAR'],
+            ['id_reservasi', 'FK → RESERVASI'],
+            ['metode_pembayaran', 'QRIS | E-Wallet | VA'],
+            ['kode_referensi', 'VARCHAR(40)'],
+            ['jumlah_bayar', 'INT (IDR)'],
+            ['status_pembayaran', 'Lunas | Belum Bayar']
+          ]
+        }
+      ];
+
+      grid.innerHTML = entities.map(function (ent) {
+        return `<article class="erd-entity">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="label-mono" style="color: var(--on-surface); font-weight: 600;">${escapeHtml(ent.name)}</span>
+            <span class="tag">${ent.count} baris</span>
+          </div>
+          ${ent.fields.map(function (f) {
+            return `<div class="erd-field">
+              <span>${escapeHtml(f[0])}</span>
+              <span style="color: var(--on-surface-variant);">${escapeHtml(f[1])}</span>
+            </div>`;
+          }).join('')}
+        </article>`;
+      }).join('');
+    }
+
+    function handleResetDemoData(btn) {
+      if (btn && btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = 'Klik lagi untuk pulihkan data awal';
+        return;
+      }
+      if (btn) {
+        btn.dataset.armed = 'false';
+        btn.textContent = 'Pulihkan Data Simulasi Awal';
+      }
+      const fresh = createSeedState();
+      appState.customers = fresh.customers;
+      appState.reservations = fresh.reservations;
+      appState.payments = fresh.payments;
+      appState.activePaymentReservationId = null;
+
+      updateHeaderBadges();
+      renderErdSchema();
+      persistAppState();
+      showGlobalBanner('Data simulasi awal telah dipulihkan.', 'success');
+    }
+
+    function handleClearAllData(btn) {
+      if (btn && btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = 'Klik lagi untuk hapus semua transaksi';
+        return;
+      }
+      if (btn) {
+        btn.dataset.armed = 'false';
+        btn.textContent = 'Kosongkan Semua Transaksi';
+      }
+      appState.customers = [];
+      appState.reservations = [];
+      appState.payments = [];
+      appState.activePaymentReservationId = null;
+
+      updateHeaderBadges();
+      renderErdSchema();
+      persistAppState();
+      showGlobalBanner('Seluruh histori transaksi telah dikosongkan.', 'warning');
+    }
+
+    function updateHeaderBadges() {
+      const unitBadge = document.getElementById('badge-unit-count');
+      const txBadge = document.getElementById('badge-tx-count');
+      if (unitBadge) unitBadge.textContent = String(UNITS.length);
+      if (txBadge) txBadge.textContent = String(appState.reservations.length);
+    }
+
+    // =========================================================================
+    // 12. APP INITIALIZATION
+    // =========================================================================
+    async function initApp() {
+      await loadPersistedState();
+      updateHeaderBadges();
+      renderCategoryFilters();
+      renderCatalog();
+      renderScheduleModule();
+      renderSummaryPanel();
+      renderPaymentModule();
+      syncAnalyticsFilterInputs();
+      refreshIcons();
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
